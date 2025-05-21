@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main", "DEV-switch-to-react" ]
+    branches: [ "main" ]
 
 permissions:
   contents: write
