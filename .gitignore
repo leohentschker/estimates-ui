@@ -47,7 +47,6 @@ coverage/
 .netlify/
 out/
 .storybook/
-public/
 .static/
 .scss-cache/
 .parcel-cache/
