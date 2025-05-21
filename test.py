@@ -50,18 +50,4 @@ def test_fraction():
     assert s.check() == z3.sat
     assert s.model()[x].as_fraction() == Fraction(1, 2)
 
-# test_simple_sat()
-# test_simple_unsat()
-# test_linear_system()
 test_fraction()
-# test_bitvector_wraparound()
-# test_string_concat()
-
-
-p = split_exercise()
-p.use(SplitHyp("h1"))
-p.use(SplitHyp("h2"))
-p.use(SplitGoal())
-p.use(Linarith())
-p.use(Linarith())
-print(p.proof())

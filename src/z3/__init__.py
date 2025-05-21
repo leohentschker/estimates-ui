@@ -10,7 +10,7 @@ async def _init():
     # 1 – boot the JS Z3 WASM build
     await js.eval("""
     (async () => {
-        const { init } = await import('z3-solver');
+        const { init } = await import('https://esm.sh/z3-solver@4.15.0?bundle');
         const { Context, Z3 } = await init();
         globalThis.Z3 = new Context('main');
         globalThis.Z3_functions = Z3;
@@ -226,7 +226,8 @@ async def _init():
     mod.And = And
     mod.Not = Not
     mod.BitVec = BitVec
-    mod.Strings = Strings
+    mod.Strings = String
+
     sys.modules["z3"] = mod
 
 asyncio.ensure_future(_init())
