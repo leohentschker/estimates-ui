@@ -25,6 +25,10 @@ jobs:
           cd vite-app
           npm install
           npm run build
+
+      - name: Copy wheels to dist
+        run: |
+          cp vite-app/public/*.whl vite-app/dist/
           
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
