@@ -42,7 +42,6 @@ async def _init():
     # 2 – lightweight wrappers
     class _Solver:
         def __init__(self):
-            print ("init solver")
             self._s = js.Z3.Solver.new()
 
         def add(self, *cs):
@@ -52,7 +51,6 @@ async def _init():
             return run_sync(self._s.check())
 
         def model(self):
-            print("Calling solver.model()")
             return _Model(self._s.model())
 
     class _Expr:
