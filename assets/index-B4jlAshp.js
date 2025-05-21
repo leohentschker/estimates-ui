@@ -76,6 +76,6 @@ p.proof()
 from estimates.main import *
 p = linarith_impossible_example()
 p.use(Linarith())
-p.use(Linarith(verbose=true))
+p.use(Linarith(verbose=True))
 p.proof()
 `;function tm(){return jl.jsxs("div",{children:[jl.jsx("h1",{children:"Z3 Pyodide Proof Assistant Demo"}),jl.jsxs("div",{children:[jl.jsx(Sc,{code:Pv,proofName:"Case Split"}),jl.jsx(Sc,{code:Iv,proofName:"Linear Arithmetic"}),jl.jsx(Sc,{code:lm,proofName:"Linear Arithmetic Impossible"})]})]})}function am(){return jl.jsx("div",{className:"app-container",children:jl.jsx(tm,{})})}jv.createRoot(document.getElementById("app")).render(jl.jsx(Rv.StrictMode,{children:jl.jsx(am,{})}))});export default um();
