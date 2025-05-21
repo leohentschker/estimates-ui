@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { loadAndRunPyodide } from '../pyodide-loader';
-import Proofs from './Proofs';
 
 function Proof({ code, proofName }) {
   const [result, setResult] = useState(null);
