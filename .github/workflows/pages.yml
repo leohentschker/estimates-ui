@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "DEV-updating-wheels-location" ]
 
 permissions:
   contents: write
@@ -28,7 +28,9 @@ jobs:
 
       - name: Copy wheels to dist
         run: |
-          cp vite-app/public/*.whl vite-app/dist/
+          cp vite-app/public/*.whl vite-app/dist/assets/
+          cp vite-app/public/coi-serviceworker.js vite-app/dist/assets/
+          cp vite-app/public/z3* vite-app/dist/assets/
           
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
