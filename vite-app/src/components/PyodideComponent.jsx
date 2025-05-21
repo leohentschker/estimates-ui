@@ -51,7 +51,7 @@ const PROOF_3 = `
 from estimates.main import *
 p = linarith_impossible_example()
 p.use(Linarith())
-p.use(Linarith(verbose=true))
+p.use(Linarith(verbose=True))
 p.proof()
 `;
 
