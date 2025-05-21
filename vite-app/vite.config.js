@@ -15,9 +15,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['pyodide'],
   },
-  build: {
-    commonjsOptions: {
-      include: [],
-    },
-  },
 });
