@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { loadAndRunPyodide } from '../pyodide-loader';
 import AceEditor from 'react-ace';
-
 import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/theme-tomorrow";
 import "ace-builds/src-noconflict/ext-language_tools";
 import { PyodideInterface } from 'pyodide';
 import { useDebounce } from 'use-debounce';
 import useOnce from './hooks';
+import classNames from 'classnames';
 
 class ErrorBoundary extends React.Component<{ children?: React.ReactNode }> {
   state = { hasError: false, error: null };
@@ -117,6 +117,10 @@ function Proof({
     return JSON.stringify(result, null, 2);
   }, [result]);
 
+  const isError = useMemo(() => {
+    return result && typeof result === 'string' && result.includes('Error: Traceback');
+  }, [result]);
+
   return (
     <div className="h-full w-full flex flex-col">
       {
@@ -148,7 +152,10 @@ function Proof({
         result && (
           <div className="p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-2">Result:</h3>
-            <pre className='bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-green-500 whitespace-pre-wrap break-words'>
+            <pre className={classNames('bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4', {
+              'border-green-500': !isError,
+              'border-red-500': isError,
+            })}>
               {serializedResult}
             </pre>
           </div>
