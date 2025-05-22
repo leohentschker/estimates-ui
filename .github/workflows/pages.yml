@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "DEV-rename-app-cleanup" ]
 
 permissions:
   contents: write
@@ -22,20 +22,20 @@ jobs:
           
       - name: Build Vite app
         run: |
-          cd vite-app
+          cd sample-app
           npm install
           npm run build
 
       - name: Copy wheels to dist
         run: |
-          cp vite-app/public/*.whl vite-app/dist/assets/
-          cp vite-app/public/coi-serviceworker.js vite-app/dist/assets/
-          cp vite-app/public/z3* vite-app/dist/assets/
+          cp sample-app/public/*.whl sample-app/dist/assets/
+          cp sample-app/public/coi-serviceworker.js sample-app/dist/assets/
+          cp sample-app/public/z3* sample-app/dist/assets/
           
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: vite-app/dist
+          folder: sample-app/dist
           branch: gh-pages
           clean: true

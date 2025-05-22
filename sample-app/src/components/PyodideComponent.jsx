@@ -4,9 +4,12 @@ import { loadAndRunPyodide } from '../pyodide-loader';
 function Proof({ code, proofName }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingStatus, setLoadingStatus] = useState("Loading...");
   useEffect(() => {
     const runProof = async () => {
+      setLoadingStatus("Loading packages...");
       const pyodide = await loadAndRunPyodide();
+      setLoadingStatus("Running proof...");
       const result = await pyodide.runPythonAsync(code);
       setResult(result);
       setLoading(false);
@@ -19,7 +22,7 @@ function Proof({ code, proofName }) {
       <h3>{proofName}</h3>
       <pre>{code}</pre>
       {loading ? (
-        <p>Loading...</p>
+        <p>{loadingStatus}</p>
       ) : (
         <pre>{result}</pre>
       )}
@@ -40,14 +43,14 @@ p.use(Linarith())
 p.proof()
 `;
 
-const PROOF_2 = `
+export const PROOF_2 = `
 from estimates.main import *
 p = linarith_exercise()
 p.use(Linarith())
 p.proof()
 `;
 
-const PROOF_3 = `
+export const PROOF_3 = `
 from estimates.main import *
 p = linarith_impossible_example()
 p.use(Linarith())
@@ -62,8 +65,6 @@ function PyodideComponent() {
       <h1>Z3 Pyodide Proof Assistant Demo</h1>
       <div>
         <Proof code={PROOF_1} proofName="Case Split" />
-        <Proof code={PROOF_2} proofName="Linear Arithmetic" />
-        <Proof code={PROOF_3} proofName="Linear Arithmetic Impossible" />
       </div>
     </div>
   );

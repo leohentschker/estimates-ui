@@ -6,5 +6,6 @@ This repo builds a pyodide-compatible python wheel for z3.
 
 ```python
 from z3 import Solver
+
 ```
 
