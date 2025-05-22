@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { loadAndRunPyodide } from '../pyodide-loader';
 
-function Proof({ code, proofName }) {
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(true);
+interface ProofProps {
+  code: string;
+  proofName: string;
+}
+
+function Proof({ code, proofName }: ProofProps): React.ReactElement {
+  const [result, setResult] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  
   useEffect(() => {
-    const runProof = async () => {
+    const runProof = async (): Promise<void> => {
       const pyodide = await loadAndRunPyodide();
-      const result = await pyodide.runPythonAsync(code);
-      setResult(result);
-      setLoading(false);
+      if (pyodide) {
+        const result = await pyodide.runPythonAsync(code);
+        setResult(result);
+        setLoading(false);
+      }
     };
     runProof();
   }, [code]);
@@ -26,8 +34,6 @@ function Proof({ code, proofName }) {
     </div>
   );
 }
-
-
 
 const PROOF_1 = `
 from estimates.main import *
@@ -55,8 +61,7 @@ p.use(Linarith(verbose=True))
 p.proof()
 `;
 
-function PyodideComponent() {
-
+function PyodideComponent(): React.ReactElement {
   return (
     <div>
       <h1>Z3 Pyodide Proof Assistant Demo</h1>
