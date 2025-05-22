@@ -1,44 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import { loadAndRunPyodide } from '../pyodide-loader';
+import AceEditor from 'react-ace';
+
+import "ace-builds/src-noconflict/mode-python";
+import "ace-builds/src-noconflict/theme-tomorrow";
+import "ace-builds/src-noconflict/ext-language_tools";
+import { PyodideInterface } from 'pyodide';
 
 interface ProofProps {
   code: string;
-  proofName: string;
 }
 
-function Proof({ code, proofName }: ProofProps): React.ReactElement {
+function Proof({ code }: ProofProps): React.ReactElement {
   const [result, setResult] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
+
+  const loadPyodide = async (): Promise<void> => {
+    const pyodide = await loadAndRunPyodide();
+    if (pyodide) {
+      setPyodide(pyodide);
+    }
+  }
 
   useEffect(() => {
-    const runProof = async (): Promise<void> => {
-      const pyodide = await loadAndRunPyodide();
-      if (pyodide) {
-        const result = await pyodide.runPythonAsync(code);
-        setResult(result);
-        setLoading(false);
-      }
-    };
-    runProof();
-  }, [code]);
+    void loadPyodide();
+  }, []);
+
+  const runProof = async (): Promise<void> => {
+    if (!pyodide) {
+      return;
+    }
+    setLoading(true);
+    setResult(null);
+    try {
+      const result = await pyodide.runPythonAsync(code);
+      setResult(result);
+    } catch (error) {
+      setResult(error instanceof Error ? error.message : 'Unknown error');
+    }
+    setLoading(false);
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h3 className="text-xl font-semibold text-indigo-700 mb-4">{proofName}</h3>
-      <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto mb-4">{code}</pre>
-      {loading ? (
+    <div className="h-full w-full">
+      <div className='bg-slate-200 w-full flex'>
+        <div
+          className={`bg-indigo-900 text-white rounded-r-md pl-2 pr-4 py-1 ${pyodide ? 'cursor-pointer hover:bg-indigo-800' : 'opacity-50 cursor-not-allowed'} transition-colors duration-200`}
+          onClick={pyodide ? runProof : undefined}
+        >
+          <span>
+            Execute
+          </span>
+        </div>
+        <div className='flex-1' />
+      </div>
+      {
+        !pyodide && (
+          <div className='flex items-center justify-center py-4'>
+            <div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500'></div>
+            <span className='ml-2 text-indigo-600'>Loading estimates...</span>
+          </div>
+        )
+      }
+
+      {loading && (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
           <span className="ml-2 text-indigo-600">Processing...</span>
         </div>
-      ) : (
-        <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-green-500">{result}</pre>
       )}
+      {
+        result && (
+          <div className='p-4'>
+            <pre className='bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-green-500 whitespace-pre-wrap break-words'>
+              {result}
+            </pre>
+          </div>
+        )
+      }
     </div>
   );
 }
 
-const PROOF_1 = `
+const DEFAULT_PROOF = `
 from estimates.main import *
 p = split_exercise()
 p.use(SplitHyp("h1"))
@@ -47,16 +92,30 @@ p.use(SplitGoal())
 p.use(Linarith())
 p.use(Linarith())
 p.proof()
-`;
+`.trim();
 
 export default function Estimates(): React.ReactElement {
+  const [code, setCode] = useState(DEFAULT_PROOF);
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8 pb-4">
-        Z3 Pyodide Proof Assistant Demo
-      </h1>
-      <div className="space-y-6">
-        <Proof code={PROOF_1} proofName="Case Split" />
+    <div className="h-screen grid grid-cols-5">
+      <div className='col-span-3 h-full p-1 flex flex-col'>
+        <div className='rounded-md border border-pink-300 flex-1 p-3'>
+          <AceEditor
+            mode="python"
+            theme="tomorrow"
+            name="UNIQUE_ID_OF_DIV"
+            editorProps={{ $blockScrolling: true }}
+            onChange={setCode}
+            value={code}
+            height='100%'
+            width='100%'
+            fontSize={16}
+            lineHeight={28}
+          />
+        </div>
+      </div>
+      <div className='col-span-2'>
+        <Proof code={code} />
       </div>
     </div>
   );
