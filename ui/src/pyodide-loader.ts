@@ -1,15 +1,26 @@
 import { loadPyodide, version as pyodideVersion, PyodideInterface } from "pyodide";
 
-async function initPyodide(): Promise<PyodideInterface> {
+async function initPyodide({
+  stdout = (message: string) => console.log(message),
+}: {
+  stdout: (message: string) => void;
+}): Promise<PyodideInterface> {
   const pyodide = await loadPyodide({
     indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
+    stdout,
   });
   return pyodide;
 }
 
-export async function loadAndRunPyodide(): Promise<PyodideInterface | undefined> {
+export async function loadAndRunPyodide({
+  stdout = (message: string) => console.log(message),
+}: {
+  stdout: (message: string) => void;
+}): Promise<PyodideInterface | undefined> {
   try {
-    const pyodide = await initPyodide();        
+    const pyodide = await initPyodide({
+      stdout
+    });
     await pyodide.loadPackage("micropip");
     await pyodide.runPythonAsync(`
         import micropip
