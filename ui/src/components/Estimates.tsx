@@ -6,6 +6,7 @@ import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/theme-tomorrow";
 import "ace-builds/src-noconflict/ext-language_tools";
 import { PyodideInterface } from 'pyodide';
+import { useDebounce } from 'use-debounce';
 
 interface ProofProps {
   code: string;
@@ -17,6 +18,8 @@ function Proof({ code }: ProofProps): React.ReactElement {
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
 
   const loadPyodide = async (): Promise<void> => {
+    setPyodide(null);
+    setResult(null);
     const pyodide = await loadAndRunPyodide();
     if (pyodide) {
       setPyodide(pyodide);
@@ -26,6 +29,8 @@ function Proof({ code }: ProofProps): React.ReactElement {
   useEffect(() => {
     void loadPyodide();
   }, []);
+
+  const [debouncedCode] = useDebounce(code, 1000);
 
   const runProof = async (): Promise<void> => {
     if (!pyodide) {
@@ -42,19 +47,15 @@ function Proof({ code }: ProofProps): React.ReactElement {
     setLoading(false);
   }
 
+  useEffect(() => {
+    if (!pyodide) {
+      return;
+    }
+    runProof();
+  }, [debouncedCode, !!pyodide]);
+
   return (
-    <div className="h-full w-full">
-      <div className='bg-slate-200 w-full flex'>
-        <div
-          className={`bg-indigo-900 text-white rounded-r-md pl-2 pr-4 py-1 ${pyodide ? 'cursor-pointer hover:bg-indigo-800' : 'opacity-50 cursor-not-allowed'} transition-colors duration-200`}
-          onClick={pyodide ? runProof : undefined}
-        >
-          <span>
-            Execute
-          </span>
-        </div>
-        <div className='flex-1' />
-      </div>
+    <div className="h-full w-full flex flex-col">
       {
         !pyodide && (
           <div className='flex items-center justify-center py-4'>
@@ -79,6 +80,14 @@ function Proof({ code }: ProofProps): React.ReactElement {
           </div>
         )
       }
+      <div className='flex-1' />
+      <div className='flex justify-end'>
+        <div
+          className='m-5 px-3 py-2 bg-sky-900 text-white rounded-md cursor-pointer hover:bg-sky-800 transition-colors duration-200'
+          onClick={loadPyodide}>
+          Restart Editor
+        </div>
+      </div>
     </div>
   );
 }

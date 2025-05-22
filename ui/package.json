@@ -28,6 +28,7 @@
     "react": "^19.1.0",
     "react-ace": "^14.0.1",
     "react-dom": "^19.1.0",
+    "use-debounce": "^10.0.4",
     "z3-solver": "^4.15.0"
   }
 }
