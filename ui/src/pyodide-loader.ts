@@ -1,0 +1,32 @@
+import { loadPyodide, version as pyodideVersion, PyodideInterface } from "pyodide";
+
+async function initPyodide(): Promise<PyodideInterface> {
+  const pyodide = await loadPyodide({
+    indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
+  });
+  return pyodide;
+}
+
+export async function loadAndRunPyodide(): Promise<PyodideInterface | undefined> {
+  try {
+    const pyodide = await initPyodide();        
+    await pyodide.loadPackage("micropip");
+    await pyodide.runPythonAsync(`
+        import micropip
+        await micropip.install("micropip")
+        await micropip.install("sympy")
+    `);
+    console.log("installing z3");
+    await pyodide.runPythonAsync(`
+        import micropip
+        await micropip.install("file:./z3-0.1.0-py3-none-any.whl")
+        import z3
+        await z3._init()
+        await micropip.install("file:./estimates-0.1.0-py3-none-any.whl")
+    `);
+    return pyodide;
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+}

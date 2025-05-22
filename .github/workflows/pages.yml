@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "DEV-shift-to-ts" ]
 
 permissions:
   contents: write
@@ -22,20 +22,20 @@ jobs:
           
       - name: Build Vite app
         run: |
-          cd vite-app
+          cd ui
           npm install
           npm run build
 
       - name: Copy wheels to dist
         run: |
-          cp vite-app/public/*.whl vite-app/dist/assets/
-          cp vite-app/public/coi-serviceworker.js vite-app/dist/assets/
-          cp vite-app/public/z3* vite-app/dist/assets/
+          cp ui/public/*.whl ui/dist/assets/
+          cp ui/public/coi-serviceworker.js ui/dist/assets/
+          cp ui/public/z3* ui/dist/assets/
           
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: vite-app/dist
+          folder: ui/dist
           branch: gh-pages
           clean: true
