@@ -9,7 +9,7 @@ interface ProofProps {
 function Proof({ code, proofName }: ProofProps): React.ReactElement {
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  
+
   useEffect(() => {
     const runProof = async (): Promise<void> => {
       const pyodide = await loadAndRunPyodide();
@@ -23,13 +23,16 @@ function Proof({ code, proofName }: ProofProps): React.ReactElement {
   }, [code]);
 
   return (
-    <div>
-      <h3>{proofName}</h3>
-      <pre>{code}</pre>
+    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h3 className="text-xl font-semibold text-indigo-700 mb-4">{proofName}</h3>
+      <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto mb-4">{code}</pre>
       {loading ? (
-        <p>Loading...</p>
+        <div className="flex items-center justify-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+          <span className="ml-2 text-indigo-600">Processing...</span>
+        </div>
       ) : (
-        <pre>{result}</pre>
+        <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-green-500">{result}</pre>
       )}
     </div>
   );
@@ -46,32 +49,15 @@ p.use(Linarith())
 p.proof()
 `;
 
-const PROOF_2 = `
-from estimates.main import *
-p = linarith_exercise()
-p.use(Linarith())
-p.proof()
-`;
-
-const PROOF_3 = `
-from estimates.main import *
-p = linarith_impossible_example()
-p.use(Linarith())
-p.use(Linarith(verbose=True))
-p.proof()
-`;
-
-function PyodideComponent(): React.ReactElement {
+export default function Estimates(): React.ReactElement {
   return (
-    <div>
-      <h1>Z3 Pyodide Proof Assistant Demo</h1>
-      <div>
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 pb-4">
+        Z3 Pyodide Proof Assistant Demo
+      </h1>
+      <div className="space-y-6">
         <Proof code={PROOF_1} proofName="Case Split" />
-        <Proof code={PROOF_2} proofName="Linear Arithmetic" />
-        <Proof code={PROOF_3} proofName="Linear Arithmetic Impossible" />
       </div>
     </div>
   );
 }
-
-export default PyodideComponent;
