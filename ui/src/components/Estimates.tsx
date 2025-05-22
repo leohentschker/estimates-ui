@@ -8,6 +8,8 @@ import { PyodideInterface } from 'pyodide';
 import { useDebounce } from 'use-debounce';
 import useOnce from './hooks';
 import classNames from 'classnames';
+import { Dialog, DialogPortal, DialogTitle } from './Dialog';
+import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
 
 class ErrorBoundary extends React.Component<{ children?: React.ReactNode }> {
   state = { hasError: false, error: null };
@@ -23,7 +25,7 @@ class ErrorBoundary extends React.Component<{ children?: React.ReactNode }> {
           </pre>
           <div className='mt-4'>
             <button
-              className='bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600 transition-colors duration-200'
+              className='bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600 transition-colors duration-200 w-full'
               onClick={() => this.setState({ hasError: false, error: null })}
             >
               Try Again
@@ -47,6 +49,7 @@ function Proof({
   const [loading, setLoading] = useState<boolean>(false);
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
   const [stdout, setStdOut] = useState<string[]>([]);
+  const [isJaspiErrorDialogOpen, setIsJaspiErrorDialogOpen] = useState(false);
 
   const addToStdOut = (
     message: string
@@ -57,6 +60,7 @@ function Proof({
   const loadPyodide = async (): Promise<void> => {
     setPyodide(null);
     setResult(null);
+    setStdOut([]);
     const pyodide = await loadAndRunPyodide({
       stdout: addToStdOut,
     });
@@ -121,59 +125,89 @@ function Proof({
     return result && typeof result === 'string' && result.includes('Error: Traceback');
   }, [result]);
 
-  return (
-    <div className="h-full w-full flex flex-col">
-      {
-        !pyodide && (
-          <div className='flex items-center justify-center py-4'>
-            <div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500'></div>
-            <span className='ml-2 text-indigo-600'>Loading estimates...</span>
-          </div>
-        )
-      }
+  const isJaspiError = useMemo(() => {
+    return result && typeof result === 'string' && result.includes('WebAssembly stack switching not supported in this JavaScript runtime');
+  }, [result]);
 
-      {loading && (
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
-          <span className="ml-2 text-indigo-600">Processing...</span>
-        </div>
-      )}
-      {
-        stdout.length > 0 && (
-          <div className='p-4'>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Console Output:</h3>
-            <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-blue-500 whitespace-pre-wrap break-words">
-              {stdout.join('\n')}
-            </pre>
-          </div>
-        )
-      }
-      {
-        result && (
-          <div className="p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Result:</h3>
-            <pre className={classNames('bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4', {
-              'border-green-500': !isError,
-              'border-red-500': isError,
-            })}>
-              {serializedResult}
-            </pre>
-          </div>
-        )
-      }
-      <div className='flex-1' />
-      {
-        pyodide && (
-          <div className='flex justify-end'>
-            <div
-              className='m-5 px-3 py-2 bg-sky-900 text-white rounded-md cursor-pointer hover:bg-sky-800 transition-colors duration-200'
-              onClick={loadPyodide}>
-              Restart Editor
+  useEffect(() => {
+    if (isJaspiError) {
+      setIsJaspiErrorDialogOpen(true);
+    }
+  }, [isJaspiError]);
+
+  return (
+    <>
+      <Dialog
+        open={isJaspiErrorDialogOpen}
+        onOpenChange={setIsJaspiErrorDialogOpen}
+      >
+        <DialogPortal>
+          <DialogOverlay className="fixed inset-0 bg-black/40 z-50" />
+          <DialogContent className="fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg">
+            <DialogTitle>
+              Browser Compatibility Error
+            </DialogTitle>
+            <DialogDescription className='mt-4'>
+              The web version of estimates only works in Chrome because it relies on a new feature of WebAssembly that is not yet supported in other browsers.
+              See <a className='text-blue-500 cursor-pointer underline' href="https://developer.chrome.com/blog/webassembly-jspi-origin-trial" target="_blank" rel="noopener noreferrer">this Chrome blog post</a> about WebAssembly JavaScript Promise Integration (JSPI) to learn more.
+            </DialogDescription>
+          </DialogContent>
+        </DialogPortal>
+      </Dialog>
+
+      <div className="h-full w-full flex flex-col">
+        {
+          !pyodide && (
+            <div className='flex items-center justify-center py-4'>
+              <div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500'></div>
+              <span className='ml-2 text-indigo-600'>Loading estimates...</span>
             </div>
+          )
+        }
+
+        {loading && (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+            <span className="ml-2 text-indigo-600">Processing...</span>
           </div>
-        )
-      }
-    </div>
+        )}
+        {
+          stdout.length > 0 && (
+            <div className='p-4'>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Console Output:</h3>
+              <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-blue-500 whitespace-pre-wrap break-words">
+                {stdout.join('\n')}
+              </pre>
+            </div>
+          )
+        }
+        {
+          result && (
+            <div className="p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Result:</h3>
+              <pre className={classNames('bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4', {
+                'border-green-500': !isError,
+                'border-red-500': isError,
+              })}>
+                {serializedResult}
+              </pre>
+            </div>
+          )
+        }
+        <div className='flex-1' />
+        {
+          pyodide && (
+            <div className='flex justify-end w-full'>
+              <div
+                className='m-5 px-3 py-2 bg-sky-900 text-white rounded-md cursor-pointer hover:bg-sky-800 transition-colors duration-200 w-full text-center w-full lg:w-fit'
+                onClick={loadPyodide}>
+                Restart Editor
+              </div>
+            </div>
+          )
+        }
+      </div>
+    </>
   );
 }
 
@@ -214,8 +248,8 @@ export default function Estimates(): React.ReactElement {
   }, [debouncedCode]);
 
   return (
-    <div className="h-screen grid grid-cols-5">
-      <div className='col-span-3 h-full p-1 flex flex-col'>
+    <div className="h-screen flex flex-col lg:flex-row">
+      <div className='lg:flex-3 h-full p-1 flex flex-col min-h-[30vh]'>
         <div className='rounded-md border border-pink-300 flex-1 p-3'>
           <AceEditor
             mode="python"
@@ -231,7 +265,7 @@ export default function Estimates(): React.ReactElement {
           />
         </div>
       </div>
-      <div className='col-span-2'>
+      <div className='lg:flex-2 lg:max-w-1/2'>
         <ErrorBoundary>
           <Proof code={code} />
         </ErrorBoundary>
