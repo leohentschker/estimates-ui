@@ -52,6 +52,7 @@ function HowItWorksTab(): React.ReactElement {
         If one follows the above quick start instructions, one should now see the following:
       </p>
       <pre><code>&gt;&gt;&gt; from estimates.main import *
+        <br />
         &gt;&gt;&gt; p = linarith_exercise()
         <br />
         Starting proof.  Current proof state:
@@ -147,6 +148,7 @@ function HowItWorksTab(): React.ReactElement {
         One could ask what happens if Linarith fails to resolve the goal. With the verbose flag, it will give a specific counterexample consistent with all the inequalities it could find:
       </p>
       <pre><code>&gt;&gt;&gt; from estimates.main import *
+        <br />
         &gt;&gt;&gt; p = linarith_impossible_example()
         <br />
         Starting proof.  Current proof state:
@@ -163,7 +165,7 @@ function HowItWorksTab(): React.ReactElement {
         <br />
         |- x &lt; 7*z
         <br />
-        &gt;&gt;&gt; p.use(Linarith(verbose=true))
+        &gt;&gt;&gt; p.use(Linarith(verbose=True))
         <br />
         Checking feasibility of the following inequalities:
         <br />
@@ -190,7 +192,8 @@ function HowItWorksTab(): React.ReactElement {
         Linear arithmetic was unable to prove goal.
         <br />
         1 goal remaining.
-        &gt;&gt;&gt;</code></pre>
+        <br />
+        </code></pre>
 
       <p>
         Here, the task given was an impossible one: to deduce <code>x &lt; 7z</code> from the hypotheses that <code>x</code>, <code>y</code>, <code>z</code> are positive reals with <code>x &lt; 2y</code> and <code>y &lt; 3z + 1</code>. A specific counterexample <code>x = 7/2</code>, <code>y = 2</code>, <code>z = 1/2</code> was given to this problem. (In this case, this means that the original problem was impossible to solve; but in general one cannot draw such a conclusion, because it may have been possible to establish the goal by using some non-inequality hypotheses).
@@ -199,6 +202,7 @@ function HowItWorksTab(): React.ReactElement {
         Now let us consider a slightly more complicated proof, in which some branching of cases is required.
       </p>
       <pre><code>&gt;&gt;&gt; from estimates.main import *
+        <br />
         &gt;&gt;&gt; p = case_split_exercise()
         <br />
         Starting proof.  Current proof state:
@@ -222,13 +226,15 @@ function HowItWorksTab(): React.ReactElement {
         Here we can split the hypothesis h1 : P | Q into two cases:
       </p>
       <pre><code>&gt;&gt;&gt; p.use(Cases("h1"))
+        <br />
         Splitting h1: P | Q into cases P, Q.
         <br />
         2 goals remaining.
         <br />
-        Let's now look at the current proof state:
+        # Let's now look at the current proof state:
         <br />
         &gt;&gt;&gt; print(p)
+        <br />
         Proof Assistant is in tactic mode.  Current proof state:
         <br />
         P: bool
@@ -266,6 +272,7 @@ function HowItWorksTab(): React.ReactElement {
         Moved to goal 2 of 2.
         <br />
         &gt;&gt;&gt; print(p.proof())
+        <br />
         example (P: bool) (Q: bool) (R: bool) (S: bool) (h1: P | Q) (h2: R | S): (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) := by
         <br />
         cases h1
@@ -275,6 +282,7 @@ function HowItWorksTab(): React.ReactElement {
         **sorry**
         <br />
         &gt;&gt;&gt; print(p)
+        <br />
         Proof Assistant is in tactic mode.  Current proof state:
         <br />
         P: bool
@@ -334,7 +342,9 @@ function HowItWorksTab(): React.ReactElement {
         One can combine propositional tactics with linear arithmetic tactics. Here is one example (using some propositional tactics we have not yet discussed, but whose purpose should be clear, and which one can look up in this page):
       </p>
       <pre><code>&gt;&gt;&gt; from estimates.main import *
+        <br />
         &gt;&gt;&gt; p = split_exercise()
+        <br />
         Starting proof.  Current proof state:
         <br />
         x: real
@@ -360,6 +370,7 @@ function HowItWorksTab(): React.ReactElement {
         1 goal remaining.
         <br />
         &gt;&gt;&gt; p.use(SplitGoal())
+        <br />
         Split into conjunctions: x + y &gt; -3, x + y &lt; 3
         <br />
         2 goals remaining.
@@ -377,6 +388,7 @@ function HowItWorksTab(): React.ReactElement {
         &gt;&gt;&gt; print(p.proof())
         <br />
         example (x: real) (y: real) (h1: (x &gt; -1) &amp; (x &lt; 1)) (h2: (y &gt; -2) &amp; (y &lt; 2)): (x + y &gt; -3) &amp; (x + y &lt; 3) := by
+        <br />
         split_hyp h1
         <br />
         split_hyp h2
@@ -437,6 +449,7 @@ function CreatingProblemsTab(): React.ReactElement {
     <article className="prose lg:prose-md max-w-none lg:max-w-[50vw]">
       The previous demonstrations of the Proof Assistant used some "canned" examples which placed one directly in Tactic Mode with some pre-made hypotheses and goal. To make one's own problem to solve, one begins with the ProofAssistant constructor:
       <pre><code>&gt;&gt;&gt; from estimates.main import *
+        <br />
         &gt;&gt;&gt; p = ProofAssistant()
         <br />
         Proof Assistant is in assumption mode.  Current proof state:
@@ -452,19 +465,25 @@ function CreatingProblemsTab(): React.ReactElement {
         This creates a sympy Python variable x, which is real and can be manipulated symbolically using the full range of sympy methods:
       </p>
       <pre><code>&gt;&gt;&gt; x
+        <br />
         x
         <br />
         &gt;&gt;&gt; x.is_real
+        <br />
         True
         <br />
         &gt;&gt;&gt; x+x
+        <br />
         2*x
         <br />
         &gt;&gt;&gt; from sympy import expand
+        <br />
         &gt;&gt;&gt; expand((x+2)**2)
+        <br />
         x**2 + 4*x + 4
         <br />
         &gt;&gt;&gt; x&lt;5
+        <br />
         x &lt; 5
         <br />
         &gt;&gt;&gt; isinstance(x&lt;5, Boolean)

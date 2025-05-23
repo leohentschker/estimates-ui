@@ -87,7 +87,12 @@ export default function Proof({
     if (typeof result === 'string') {
       return result;
     }
-    return JSON.stringify(result, null, 2);
+    try {
+      return (result as any).toString();
+    } catch (error) {
+      console.error('Error stringifying result:', error);
+      return JSON.stringify(result, null, 2);
+    }
   }, [result]);
 
   const isError = useMemo(() => {
