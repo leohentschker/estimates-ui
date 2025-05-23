@@ -69,7 +69,7 @@ export default function Estimates(): React.ReactElement {
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
-      <div className='lg:flex-3 h-full p-1 flex flex-col min-h-[30vh]'>
+      <div className='lg:flex-3 h-full lg:p-1 flex flex-col min-h-[25vh] lg:min-h-[30vh]'>
         <Editor code={code} setCode={setCode} />
       </div>
       <div className='lg:flex-2 lg:max-w-1/2 shadow-lg'>
