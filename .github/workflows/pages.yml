@@ -29,7 +29,8 @@ jobs:
 
       - name: Build the wheel for the estimates repo
         run: |
-          cp estimates-pyproject.toml estimates/
+          rm estimates/pyproject.toml
+          cp estimates-pyproject.toml estimates/pyproject.toml
           cd estimates
           uv build --wheel --python 3.12
 
