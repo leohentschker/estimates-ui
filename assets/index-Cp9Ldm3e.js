@@ -57,7 +57,7 @@ Error generating stack: `+n.message+`
         await micropip.install("file:./z3-0.1.0-py3-none-any.whl")
         import z3
         await z3._init()
-        await micropip.install("file:./estimates-latest.whl")
+        await micropip.install("file:./estimates-0.2.0-py3-none-any.whl")
     `),z}catch(z){console.error(z);return}}function Ap(D,z=[]){const x=ne.useRef(D),b=ne.useRef(!1);ne.useEffect(()=>{x.current=D},[D]),ne.useEffect(()=>{b.current=!1},z),ne.useEffect(()=>{if(!b.current)return b.current=!0,x.current()},[b.current,...z])}var oc={exports:{}};/*!
 	Copyright (c) 2018 Jed Watson.
 	Licensed under the MIT License (MIT), see
