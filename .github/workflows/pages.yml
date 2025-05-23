@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "DEV-auto-bump-estimates" ]
 
 permissions:
   contents: write
@@ -19,12 +19,24 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
           
       - name: Build Vite app
         run: |
           cd ui
           npm install
           npm run build
+
+      - name: Clone the estimates repo
+        run: |
+          git clone git@github.com:teorth/estimates.git
+      - name: Build the wheel for the estimates repo
+        run: |
+          cp estimates-pyproject.toml estimates/
+          cd estimates
+          uv build --wheel --python 3.12
 
       - name: Copy wheels to dist
         run: |
