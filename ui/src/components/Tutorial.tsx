@@ -1,10 +1,10 @@
 import classNames from "classnames";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const OVERVIEW_TAB_ID = 'overview';
-const LEMMAS_TAB_ID = 'examples';
+const LEMMAS_TAB_ID = 'lemmas';
 const HOW_IT_WORKS_TAB_ID = 'how-it-works';
-
+const CREATING_PROBLEMS_TAB_ID = 'creating-problems';
 const tabs = [
   {
     id: OVERVIEW_TAB_ID,
@@ -15,7 +15,7 @@ const tabs = [
     label: 'How it works',
   },
   {
-    id: 'creating-problems',
+    id: CREATING_PROBLEMS_TAB_ID,
     label: 'Creating Problems',
   },
   {
@@ -560,8 +560,30 @@ function CreatingProblemsTab(): React.ReactElement {
   )
 }
 
+export const URL_PARAM_TUTORIAL_TAB = 'tutorial_tab';
+const getInitialTab = () => {
+  const url = new URL(window.location.href);
+  const tutorialParam = url.searchParams.get(URL_PARAM_TUTORIAL_TAB);
+  if (tutorialParam === 'overview') {
+    return OVERVIEW_TAB_ID;
+  } else if (tutorialParam === 'how-it-works') {
+    return HOW_IT_WORKS_TAB_ID;
+  } else if (tutorialParam === 'creating-problems') {
+    return CREATING_PROBLEMS_TAB_ID;
+  } else if (tutorialParam === 'lemmas') {
+    return LEMMAS_TAB_ID;
+  }
+  return OVERVIEW_TAB_ID;
+}
+
 export default function Tutorial(): React.ReactElement {
-  const [activeTab, setActiveTab] = useState(OVERVIEW_TAB_ID);
+  const [activeTab, setActiveTab] = useState(getInitialTab());
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(URL_PARAM_TUTORIAL_TAB, activeTab);
+    window.history.replaceState({}, '', url.toString());
+  }, [activeTab]);
+
   return (
     <div className='border-t border-gray-200 pt-4 flex flex-col gap-4 bg-white px-4'>
       <div className='flex items-center gap-2'>

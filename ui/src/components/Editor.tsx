@@ -2,10 +2,24 @@ import AceEditor from 'react-ace';
 import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/theme-tomorrow";
 import "ace-builds/src-noconflict/ext-language_tools";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDoubleDownIcon, ChevronDoubleUpIcon } from '@heroicons/react/16/solid';
-import Tutorial from './Tutorial';
+import Tutorial, { URL_PARAM_TUTORIAL_TAB } from './Tutorial';
 import classNames from 'classnames';
+
+const URL_PARAM_SHOW_TUTORIAL = 'tutorial';
+
+const shouldShowTutorialAtStart = () => {
+  const url = new URL(window.location.href);
+  const tutorialParam = url.searchParams.get(URL_PARAM_SHOW_TUTORIAL);
+  if (tutorialParam === 'true') {
+    return true;
+  } else if (tutorialParam === 'false') {
+    return false;
+  }
+  // Default to showing the tutorial on desktop
+  return window.innerWidth > 1024;
+};
 
 export default function Editor({
   code,
@@ -14,7 +28,20 @@ export default function Editor({
   code: string;
   setCode: (code: string) => void;
 }) {
-  const [showTutorial, setShowTutorial] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(shouldShowTutorialAtStart());
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(URL_PARAM_SHOW_TUTORIAL, showTutorial.toString());
+    window.history.replaceState({}, '', url.toString());
+    if (!showTutorial) {
+      const url = new URL(window.location.href);
+      url.searchParams.set(URL_PARAM_TUTORIAL_TAB, '');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [showTutorial]);
+
+
   return (
     <div className='rounded-md flex-1 lg:p-3 flex'>
       <div className='flex-1 mt-14 lg:mt-0'>
