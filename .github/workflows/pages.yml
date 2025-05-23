@@ -19,7 +19,25 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
           
+      - name: Clone the estimates repo
+        run: |
+          git clone https://github.com/teorth/estimates.git
+
+      - name: Build the wheel for the estimates repo
+        run: |
+          rm estimates/pyproject.toml
+          cp estimates-pyproject.toml estimates/pyproject.toml
+          cd estimates
+          uv build --wheel --python 3.12
+      
+      - name: Build the wheel for the z3 repo
+        run: |
+          uv build --wheel --python 3.12
+
       - name: Build Vite app
         run: |
           cd ui
@@ -28,9 +46,10 @@ jobs:
 
       - name: Copy wheels to dist
         run: |
-          cp ui/public/*.whl ui/dist/assets/
           cp ui/public/coi-serviceworker.js ui/dist/assets/
           cp ui/public/z3* ui/dist/assets/
+          cp estimates/dist/estimates-0.1.0-py3-none-any.whl ui/dist/estimates-0.3.0-py3-none-any.whl
+          cp dist/z3-0.1.0-py3-none-any.whl ui/dist/assets/z3-0.2.0-py3-none-any.whl
           
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages

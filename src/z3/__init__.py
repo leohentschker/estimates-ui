@@ -148,8 +148,10 @@ async def _init():
         return _Expr(js.Z3.Array.const(js.String(name), domain, range_sort))
 
     def Sum(*args): 
-        s = args[0]._e
-        for a in args[1:]: s = s.add(a._e)
+        if len(args) == 0:
+            return _Expr(js.Z3.Int.val(0))
+        js_args = [arg._e for arg in args]
+        s = js.Z3.Sum(*js_args)
         return _Expr(s)
     
     def Distinct(*args):

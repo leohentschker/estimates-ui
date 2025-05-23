@@ -435,7 +435,7 @@ function LemmasTab(): React.ReactElement {
         <br />
         1 goal remaining.
         <br />
-        &gt;&gt;&gt; p.use(SimpAll())
+        &gt;&gt;&gt; p.use(Linarith())
         <br />
         Goal solved!
         <br />
