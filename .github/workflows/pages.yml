@@ -44,7 +44,6 @@ jobs:
           cp ui/public/z3-0.1.0-py3-none-any.whl ui/dist/assets/
           cp ui/public/coi-serviceworker.js ui/dist/assets/
           cp ui/public/z3* ui/dist/assets/
-          cp estimates/dist/*.whl ui/dist/assets/
           
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
