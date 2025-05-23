@@ -33,7 +33,7 @@ export async function loadAndRunPyodide({
         await micropip.install("file:./z3-0.1.0-py3-none-any.whl")
         import z3
         await z3._init()
-        await micropip.install("file:./estimates-latest.whl")
+        await micropip.install("file:./estimates-0.2.0-py3-none-any.whl")
     `);
     return pyodide;
   } catch (error) {
