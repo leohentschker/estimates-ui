@@ -54,7 +54,7 @@ Error generating stack: `+n.message+`
         await micropip.install("sympy")
     `),console.log("installing z3"),await z.runPythonAsync(`
         import micropip
-        await micropip.install("file:./z3-0.1.0-py3-none-any.whl")
+        await micropip.install("file:./z3-0.2.0-py3-none-any.whl")
         import z3
         await z3._init()
         await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
