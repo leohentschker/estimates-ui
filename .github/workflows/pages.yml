@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main", "DEV-auto-bump-estimates" ]
+    branches: [ "main" ]
 
 permissions:
   contents: write
