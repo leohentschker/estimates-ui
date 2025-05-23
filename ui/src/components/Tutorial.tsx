@@ -27,7 +27,7 @@ const tabs = [
 function OverviewTab(): React.ReactElement {
   return (
     <>
-      <article className="prose lg:prose-md max-w-none">
+      <article className="prose lg:prose-md max-w-none lg:max-w-2xl">
         <p>
           This project aims to develop (in Python) a lightweight proof assistant that is substantially less powerful than full proof assistants such as Lean, Isabelle or Rocq, but which (hopefully) is easy to use to prove short, tedious tasks, such as verifying that one inequality or estimate follows from others. One specific intention of this assistant is to provide support for asymptotic estimates.
         </p>
@@ -38,7 +38,7 @@ function OverviewTab(): React.ReactElement {
 
 function HowItWorksTab(): React.ReactElement {
   return (
-    <article className="prose lg:prose-md max-w-[50vw]">
+    <article className="prose lg:prose-md max-w-none lg:max-w-2xl">
       <p>
         The assistant can be in one of two modes: Assumption mode and Tactic mode. We will get to assumption mode later, but let us first discuss tactic mode, which is the mode one ends up in when one tries any of the exercises. The format of this mode is deliberately designed to resemble the tactic mode in modern proof assistant languages such as Lean, Isabelle or Rocq.
       </p>
@@ -390,9 +390,9 @@ function HowItWorksTab(): React.ReactElement {
   )
 }
 
-function ExamplesTab(): React.ReactElement {
+function LemmasTab(): React.ReactElement {
   return (
-    <article className="prose lg:prose-md max-w-none">
+    <article className="prose lg:prose-md max-w-none lg:max-w-[50vw]">
       In addition to general proof tactics, The goal is to build a library of lemmas that can be used for more specialized applications. Here is one example, using an arithmetic mean geometric mean lemma:
 
       <p>
@@ -434,7 +434,7 @@ function ExamplesTab(): React.ReactElement {
 
 function CreatingProblemsTab(): React.ReactElement {
   return (
-    <article className="prose lg:prose-md max-w-none">
+    <article className="prose lg:prose-md max-w-none lg:max-w-[50vw]">
       The previous demonstrations of the Proof Assistant used some "canned" examples which placed one directly in Tactic Mode with some pre-made hypotheses and goal. To make one's own problem to solve, one begins with the ProofAssistant constructor:
       <pre><code>&gt;&gt;&gt; from estimates.main import *
         &gt;&gt;&gt; p = ProofAssistant()
@@ -544,7 +544,7 @@ function CreatingProblemsTab(): React.ReactElement {
 export default function Tutorial(): React.ReactElement {
   const [activeTab, setActiveTab] = useState(OVERVIEW_TAB_ID);
   return (
-    <div className='border-t border-gray-200 pt-4 flex flex-col gap-4'>
+    <div className='border-t border-gray-200 pt-4 flex flex-col gap-4 bg-white px-4'>
       <div className='flex items-center gap-2'>
         {
           tabs.map((tab) => (
@@ -562,7 +562,7 @@ export default function Tutorial(): React.ReactElement {
           ))
         }
       </div>
-      <div className="h-[60vh] overflow-y-scroll overflow-x-scroll  max-w-[50vw]">
+      <div className="overflow-y-scroll overflow-x-scroll lg:h-[calc(60vh-40px)]">
         {
           activeTab === OVERVIEW_TAB_ID && (
             <OverviewTab />
@@ -580,7 +580,7 @@ export default function Tutorial(): React.ReactElement {
         }
         {
           activeTab === LEMMAS_TAB_ID && (
-            <ExamplesTab />
+            <LemmasTab />
           )
         }
       </div>
