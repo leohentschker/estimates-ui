@@ -1,5 +1,6 @@
-import classNames from "classnames";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { ChevronDoubleDownIcon, ChevronDoubleUpIcon } from '@heroicons/react/16/solid';
+import classNames from 'classnames';
 
 const OVERVIEW_TAB_ID = 'overview';
 const LEMMAS_TAB_ID = 'lemmas';
@@ -193,7 +194,7 @@ function HowItWorksTab(): React.ReactElement {
         <br />
         1 goal remaining.
         <br />
-        </code></pre>
+      </code></pre>
 
       <p>
         Here, the task given was an impossible one: to deduce <code>x &lt; 7z</code> from the hypotheses that <code>x</code>, <code>y</code>, <code>z</code> are positive reals with <code>x &lt; 2y</code> and <code>y &lt; 3z + 1</code>. A specific counterexample <code>x = 7/2</code>, <code>y = 2</code>, <code>z = 1/2</code> was given to this problem. (In this case, this means that the original problem was impossible to solve; but in general one cannot draw such a conclusion, because it may have been possible to establish the goal by using some non-inequality hypotheses).
@@ -576,7 +577,7 @@ const getInitialTab = () => {
   return OVERVIEW_TAB_ID;
 }
 
-export default function Tutorial(): React.ReactElement {
+function Tutorial(): React.ReactElement {
   const [activeTab, setActiveTab] = useState(getInitialTab());
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -625,6 +626,70 @@ export default function Tutorial(): React.ReactElement {
           )
         }
       </div>
+    </div>
+  )
+}
+
+
+const shouldShowTutorialAtStart = () => {
+  const url = new URL(window.location.href);
+  const tutorialParam = url.searchParams.get(URL_PARAM_SHOW_TUTORIAL);
+  if (tutorialParam === 'true') {
+    return true;
+  } else if (tutorialParam === 'false') {
+    return false;
+  }
+  // Default to showing the tutorial on desktop
+  return window.innerWidth > 1024;
+};
+const URL_PARAM_SHOW_TUTORIAL = 'tutorial';
+export default function TutorialContainer(): React.ReactElement {
+  const [showTutorial, setShowTutorial] = useState(shouldShowTutorialAtStart());
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(URL_PARAM_SHOW_TUTORIAL, showTutorial.toString());
+    window.history.replaceState({}, '', url.toString());
+    if (!showTutorial) {
+      const url = new URL(window.location.href);
+      url.searchParams.set(URL_PARAM_TUTORIAL_TAB, '');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [showTutorial]);
+
+
+  return (
+    <div
+      className={
+        classNames(
+          'bg-white py-4 rounded-t-md lg:rounded-t-none lg:rounded-b-md border-t border-gray-200 text-slate-800 border-b border-gray-200 lg:shadow-lg absolute top-0 lg:top-auto lg:bottom-0 left-0 right-0 z-10 bg-white h-14 bg-white z-20 lg:w-3/5',
+          showTutorial && 'h-screen lg:h-auto'
+        )
+      }
+    >
+      <div
+        className='flex items-center justify-between cursor-pointer pb-2'
+        onClick={() => setShowTutorial(!showTutorial)}
+      >
+        <div className='px-4'>
+          Learn more about estimates
+        </div>
+        {
+          !showTutorial ? (
+            <>
+              <ChevronDoubleUpIcon className='w-4 h-4 hidden lg:block' />
+              <ChevronDoubleDownIcon className='w-4 h-4 block lg:hidden' />
+            </>
+          ) : (
+            <>
+              <ChevronDoubleDownIcon className='w-4 h-4 hidden lg:block' />
+              <ChevronDoubleUpIcon className='w-4 h-4 block lg:hidden' />
+            </>
+          )
+        }
+      </div>
+      {showTutorial && (
+        <Tutorial />
+      )}
     </div>
   )
 }
