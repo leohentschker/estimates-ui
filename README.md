@@ -1,7 +1,5 @@
 # Estimates in the browser
-Browser-based IDE for writing proofs with the [`estimates`](https://github.com/teorth/estimates) library, currently available at https://math.llm.dev.
-
-This is supported by three pieces of work:
+Browser-based IDE for writing proofs with the [`estimates`](https://github.com/teorth/estimates) library, currently available at https://math.llm.dev. This is supported by three pieces of work:
 1. Creating a pyodide-compatible z3 wheel by wrapping the z3 WASM build in a python shim and building as a pure-python wheel
 2. Building a pure-python version of estimates as a wheel
 3. `vite` app that loads the uses Pyodide to serve `estimates` wheel, after injecting custom `z3` dependency
@@ -50,3 +48,6 @@ npm run dev
 
 #### How this can break
 This can break in all the classic ways that web apps can break! This site is built on top of two non-thoroughly-tested python wheels, and can run into all of the classic issues of any web app. 
+
+## Contributing
+Please review the issues tagged with `good-first-issue` or submit an issue of your own! This is a very early-stage project, so contributors are actively encouraged.
