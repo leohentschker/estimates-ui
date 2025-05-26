@@ -1,107 +1,28 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { loadAndRunPyodide } from '../pyodide-loader';
-import { useDebounce } from 'use-debounce';
-import useOnce from './hooks';
+import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
-import { Dialog, DialogPortal, DialogTitle } from './Dialog';
+import { Dialog, DialogPortal, DialogTitle } from '../Dialog';
 import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
-import { PyodideInterface } from 'pyodide';
+import OutputErrorBoundary from './OutputErrorBoundary';
+import { usePyodideOutput } from './pyodideHooks';
 
-interface ProofProps {
+interface OutputProps {
   code: string;
 }
 
-export default function Proof({
+function Output({
   code
-}: ProofProps): React.ReactElement {
-  const [result, setResult] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
-  const [stdout, setStdOut] = useState<string[]>([]);
+}: OutputProps): React.ReactElement {
+  const {
+    result,
+    loading,
+    pyodide,
+    stdout,
+    loadPyodide,
+    isJaspiError,
+    isError,
+    serializedResult
+  } = usePyodideOutput({ code });
   const [isJaspiErrorDialogOpen, setIsJaspiErrorDialogOpen] = useState(false);
-
-  const addToStdOut = (
-    message: string
-  ): void => {
-    setStdOut(prev => [...prev, message]);
-  }
-
-  const loadPyodide = async (): Promise<void> => {
-    setPyodide(null);
-    setResult(null);
-    setStdOut([]);
-    const pyodide = await loadAndRunPyodide({
-      stdout: addToStdOut,
-    });
-    if (pyodide) {
-      setPyodide(pyodide);
-    }
-  }
-
-  useOnce(() => {
-    void loadPyodide();
-  }, []);
-
-  const [debouncedCode] = useDebounce(code, 200);
-
-  const runProof = async (): Promise<void> => {
-    if (!pyodide) {
-      return;
-    }
-    setLoading(true);
-    setResult(null);
-    setStdOut([]);
-    try {
-      const result = await pyodide.runPythonAsync(code);
-      setResult(result);
-    } catch (error) {
-      let errorMessage: string;
-      if (error instanceof Error) {
-        if (error.message.includes('PythonError')) {
-          errorMessage = `Python Error: ${error.message.replace('PythonError: ', '')}`;
-        } else {
-          errorMessage = `Error: ${error.message}`;
-        }
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      } else {
-        errorMessage = 'An unexpected error occurred';
-      }
-      setResult(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useOnce(() => {
-    if (!pyodide) {
-      return;
-    }
-    void runProof();
-  }, [debouncedCode, !!pyodide]);
-
-  const serializedResult = useMemo(() => {
-    if (!result) {
-      return null;
-    }
-    if (typeof result === 'string') {
-      return result;
-    }
-    try {
-      return (result as any).toString();
-    } catch (error) {
-      console.error('Error stringifying result:', error);
-      return JSON.stringify(result, null, 2);
-    }
-  }, [result]);
-
-  const isError = useMemo(() => {
-    return result && typeof result === 'string' && result.includes('Error: Traceback');
-  }, [result]);
-
-  const isJaspiError = useMemo(() => {
-    return result && typeof result === 'string' && result.includes('WebAssembly stack switching not supported in this JavaScript runtime');
-  }, [result]);
 
   useEffect(() => {
     if (isJaspiError) {
@@ -111,6 +32,9 @@ export default function Proof({
 
   return (
     <>
+      {/* Dialog for Jaspi error -- see 
+      https://v8.dev/blog/jspi-ot, https://developer.chrome.com/blog/webassembly-jspi-origin-trial
+       */}
       <Dialog
         open={isJaspiErrorDialogOpen}
         onOpenChange={setIsJaspiErrorDialogOpen}
@@ -129,6 +53,7 @@ export default function Proof({
         </DialogPortal>
       </Dialog>
 
+      {/* Loading indicator when pyodide is not loaded */}
       <div className="h-full w-full flex flex-col">
         {
           !pyodide && (
@@ -139,12 +64,15 @@ export default function Proof({
           )
         }
 
+        {/* Loading indicator when proof is being processed */}
         {loading && (
           <div className="flex items-center justify-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
             <span className="ml-2 text-indigo-600">Processing...</span>
           </div>
         )}
+
+        {/* Console output, things from "print" in Python */}
         {
           stdout.length > 0 && (
             <div className='p-4'>
@@ -155,6 +83,8 @@ export default function Proof({
             </div>
           )
         }
+
+        {/* Return result of the editor, if any */}
         {
           result && (
             <div className="p-4">
@@ -168,6 +98,8 @@ export default function Proof({
             </div>
           )
         }
+
+        {/* Button to restart the editor */}
         <div className='flex-1' />
         {
           pyodide && (
@@ -183,4 +115,22 @@ export default function Proof({
       </div>
     </>
   );
+}
+
+/**
+ * Wrap our component in an error boundary so that we can catch errors that break out of the editor
+ * from Pyodide unexpectedly and enable refreshing the editor.
+ */
+export default function OutputContainer({
+  code
+}: {
+  code: string;
+}) {
+  return (
+    <div className='lg:flex-2 lg:max-w-1/2 shadow-lg'>
+      <OutputErrorBoundary>
+        <Output code={code} />
+      </OutputErrorBoundary>
+    </div>
+  )
 }
