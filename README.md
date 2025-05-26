@@ -1,5 +1,5 @@
 # Estimates in the browser
-Browser-based IDE for writing proofs with the [`estimates`](https://github.com/teorth/estimates) library.
+Browser-based IDE for writing proofs with the [`estimates`](https://github.com/teorth/estimates) library, currently available at https://math.llm.dev.
 
 This is supported by three pieces of work:
 1. Creating a pyodide-compatible z3 wheel by wrapping the WASM build in a python shim
@@ -31,7 +31,7 @@ If there are upstream dependency changes in `estimates`, this process of buildin
 It could be worth declaring the build parameters for this "web" build directly in the `estimates` `pyproject.toml` file, as this would decrease the likelihood that upstream dependency changes in the `estimates` project break functionality within this repository.
 
 ## Vite app
-With pure python `z3` and `estimates` wheels, we can now load them in any Pyodide-compatible environment. In the folder `ui` we have a 
+With pure python `z3` and `estimates` wheels, we can now load them in any Pyodide-compatible environment. In the folder `ui` we have a vite app that loads the website at [`https://math.llm.dev`](https://math.llm.dev).
 
 ### How this can break
 This can break in all the classic ways that web apps can break! This site is built on top of two non-thoroughly-tested python wheels, and can run into all of the classic issues of any web app. 
