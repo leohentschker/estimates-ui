@@ -1,12 +1,12 @@
 # Estimates in the browser
 Browser-based IDE for writing proofs with the [`estimates`](https://github.com/teorth/estimates) library, currently available at https://math.llm.dev.
 
-[Sample image](assets/sample_screenshot.jpg)
+![Sample image](assets/sample_screenshot.jpg)
 
 ## How it works
 This is supported by three pieces of work:
-1. [`src/z3`](src/z3) Creating a pyodide-compatible z3 wheel by wrapping the z3 WASM build in a python shim and building as a pure-python wheel
-2. [estimates-pyproject.toml](estimates-pyproject.toml) Building a pure-python version of estimates as a wheel
+1. [`src/z3`](src/z3) pyodide-compatible z3 wheel by wrapping the z3 WASM build in a python shim and building as a pure-python wheel
+2. [estimates-pyproject.toml](estimates-pyproject.toml) pure-python `estimates` wheel
 3. [ui](ui) `vite` app that loads the uses Pyodide to serve `estimates` wheel, after injecting custom `z3` dependency
 
 ### Pyodide-compatible z3 wheel
