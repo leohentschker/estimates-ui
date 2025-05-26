@@ -1,3 +1,9 @@
+##############################################################################
+# Used to override the default pyproject.toml file in the Estimates library  #
+# https://github.com/teorth/estimates to enable a pure-python wheel without  #
+# dependencies. Having a pure python wheel without dependencies enables      #
+# loading the project within Pyodide.                                        #
+##############################################################################
 [project]
 name = "estimates"
 version = "0.1.0"
