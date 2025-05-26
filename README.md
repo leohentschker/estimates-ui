@@ -3,6 +3,8 @@ Browser-based IDE for writing proofs with the [`estimates`](https://github.com/t
 
 ![Sample image](assets/sample_screenshot.jpg)
 
+For more in-depth documentation on how the site is built see [`ui/`](ui)
+
 ## How it works
 This is supported by three pieces of work:
 1. [`src/z3`](src/z3) pyodide-compatible z3 wheel by wrapping the z3 WASM build in a python shim and building as a pure-python wheel

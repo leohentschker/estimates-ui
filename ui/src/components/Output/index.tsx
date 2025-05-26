@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { loadAndRunPyodide } from '../pyodide-loader';
+import { loadAndRunPyodide } from '../../pyodide-loader';
 import { useDebounce } from 'use-debounce';
-import useOnce from './hooks';
+import useOnce from '../hooks';
 import classNames from 'classnames';
-import { Dialog, DialogPortal, DialogTitle } from './Dialog';
+import { Dialog, DialogPortal, DialogTitle } from '../Dialog';
 import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
 import { PyodideInterface } from 'pyodide';
+import ProofErrorBoundary from './ProofErrorBoundary';
 
-interface ProofProps {
+interface OutputProps {
   code: string;
 }
 
-export default function Proof({
+function Output({
   code
-}: ProofProps): React.ReactElement {
+}: OutputProps): React.ReactElement {
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
@@ -183,4 +184,18 @@ export default function Proof({
       </div>
     </>
   );
+}
+
+export default function OutputContainer({
+  code
+}: {
+  code: string;
+}) {
+  return (
+    <div className='lg:flex-2 lg:max-w-1/2 shadow-lg'>
+      <ProofErrorBoundary>
+        <Output code={code} />
+      </ProofErrorBoundary>
+    </div>
+  )
 }
