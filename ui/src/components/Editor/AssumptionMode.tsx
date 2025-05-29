@@ -32,7 +32,7 @@ export default function AssumptionMode({
   return (
     <div className='flex flex-col gap-2 h-full'>
       <div className='font-bold'>
-        Assumptions Mode
+        Assumptions
       </div>
       <div className='font-medium'>
         Declare variables

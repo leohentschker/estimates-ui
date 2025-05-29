@@ -96,7 +96,7 @@ export const proofSlice = createSlice({
           source: nodeBeforeWinningTacticNode.id,
           target: 'goal-node',
           type: 'tactic-edge',
-          data: { tactic: 'win' },
+          data: { tactic: edgeIntoWinningTacticNode.data?.tactic },
         }
       ];
       state.edges = newEdges;

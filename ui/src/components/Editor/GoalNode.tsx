@@ -14,7 +14,6 @@ export default function GoalNode({
     return `${goal.input}`;
   }, [goal]);
 
-
   return (
     <>
     <div

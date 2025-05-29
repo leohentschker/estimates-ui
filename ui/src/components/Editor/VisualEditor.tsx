@@ -1,9 +1,8 @@
-import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, Edge, Node, useReactFlow, useNodesState, useEdgesState, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
+import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, Edge, Node, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Goal, Relation, Variable, VariableType } from './proofGraph';
 import AssumptionMode from './AssumptionMode';
-import TacticMode from './TacticMode';
 import BaseNode from './BaseNode';
 import GoalNode from './GoalNode';
 import TacticNode from './TacticNode';
@@ -41,10 +40,9 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
 };
 
 export default function VisualEditor(): React.ReactElement {
-  const [mode, setMode] = useState<'assumption' | 'tactic'>('assumption');
   const containerRef = useRef<HTMLDivElement>(null);
   const { fitView } = useReactFlow();
-  
+
   const nodes = useAppSelector(selectNodes);
   const edges = useAppSelector(selectEdges);
   const appDispatch = useAppDispatch();
@@ -134,7 +132,7 @@ export default function VisualEditor(): React.ReactElement {
         applyTacticToNode={handleApplyTacticToNode}
       />
     ),
-  }), [variables, relations, edges]);
+  }), [variables, relations, edges, goal]);
 
   const edgeTypes: EdgeTypes = useMemo(() => ({
     'tactic-edge': props => (
@@ -206,24 +204,15 @@ export default function VisualEditor(): React.ReactElement {
         </ReactFlow>
       </div>
       <div className='w-full h-[50%] p-4'>
-        {mode === 'assumption' && (
-          <AssumptionMode
-            variables={variables}
-            setVariables={setVariables}
-            relations={relations}
-            setRelations={setRelations}
-            goal={goal}
-            setGoal={setGoal}
-            addVariable={addVariable}
-          />
-        )}
-        {mode === 'tactic' && (
-          <TacticMode
-            variables={variables}
-            setVariables={setVariables}
-            goToAssumptionMode={() => setMode('assumption')}
-          />
-        )}
+        <AssumptionMode
+          variables={variables}
+          setVariables={setVariables}
+          relations={relations}
+          setRelations={setRelations}
+          goal={goal}
+          setGoal={setGoal}
+          addVariable={addVariable}
+        />
       </div>
     </div>
   )

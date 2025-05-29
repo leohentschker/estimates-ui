@@ -6,6 +6,7 @@ import OutputErrorBoundary from './OutputErrorBoundary';
 import { loadCustomPyodide, runProof, selectCode, selectError, selectIsJaspiError, selectLoading, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useDebounce } from 'use-debounce';
+import TextEditor from '../Editor/TextEditor';
 
 function Output(): React.ReactElement {
   const appDispatch = useAppDispatch();
@@ -37,7 +38,7 @@ function Output(): React.ReactElement {
   }, [pyodideLoaded, debouncedCode]);
 
   return (
-    <>
+    <div className='h-full flex flex-col'>
       {/* Dialog for Jaspi error -- see 
       https://v8.dev/blog/jspi-ot, https://developer.chrome.com/blog/webassembly-jspi-origin-trial
        */}
@@ -59,8 +60,12 @@ function Output(): React.ReactElement {
         </DialogPortal>
       </Dialog>
 
+      <div className='flex-1'>
+        <TextEditor />
+      </div>
+
       {/* Loading indicator when pyodide is not loaded */}
-      <div className="h-full w-full flex flex-col">
+      <div className="flex-1 flex flex-col border-t border-gray-200">
         {
           !pyodideLoaded && (
             <div className='flex items-center justify-center py-4'>
@@ -119,7 +124,7 @@ function Output(): React.ReactElement {
           )
         }
       </div>
-    </>
+    </div>
   );
 }
 
