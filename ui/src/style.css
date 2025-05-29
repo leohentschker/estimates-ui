@@ -2,7 +2,7 @@
 @plugin "@tailwindcss/typography";
 
 body {
-  font-family: 'Geist Sans', sans-serif;
+  font-family: 'Geist', sans-serif;
 }
 
 code, pre {

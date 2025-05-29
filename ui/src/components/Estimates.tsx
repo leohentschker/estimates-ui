@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDebounce } from 'use-debounce';
 import Output from './Output';
 import Editor from './Editor';
+import TutorialContainer from './Tutorial';
 
 const DEFAULT_PROOF = `
 from estimates.main import *
@@ -40,6 +41,7 @@ export default function Estimates(): React.ReactElement {
 
   return (
     <div className="h-screen flex flex-col lg:flex-row">
+      <TutorialContainer />
       <Editor code={code} setCode={setCode} />
       <Output code={code} />
     </div>

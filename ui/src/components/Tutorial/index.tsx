@@ -28,7 +28,7 @@ const tabs = [
 function OverviewTab(): React.ReactElement {
   return (
     <>
-      <article className="prose lg:prose-md max-w-none lg:max-w-2xl">
+      <article className="prose lg:prose-md">
         <p>
           This project aims to develop (in Python) a lightweight proof assistant that is substantially less powerful than full proof assistants such as Lean, Isabelle or Rocq, but which (hopefully) is easy to use to prove short, tedious tasks, such as verifying that one inequality or estimate follows from others. One specific intention of this assistant is to provide support for asymptotic estimates.
         </p>
@@ -577,7 +577,7 @@ const getInitialTab = () => {
   return OVERVIEW_TAB_ID;
 }
 
-function Tutorial(): React.ReactElement {
+export default function Tutorial(): React.ReactElement {
   const [activeTab, setActiveTab] = useState(getInitialTab());
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -586,25 +586,27 @@ function Tutorial(): React.ReactElement {
   }, [activeTab]);
 
   return (
-    <div className='border-t border-gray-200 pt-4 flex flex-col gap-4 bg-white px-4'>
-      <div className='flex items-center gap-2'>
-        {
-          tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={classNames(
-                activeTab === tab.id ? 'bg-gray-200 text-gray-800' : 'text-gray-600 hover:text-gray-800',
-                'rounded-md px-3 py-2 text-sm font-medium cursor-pointer',
-                'hover:bg-gray-100'
-              )}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))
-        }
+    <div className='hidden 2xl:block max-w-lg border-r border-gray-200 h-full overflow-y-auto flex flex-col'>
+      <div className='sticky top-0 bg-white z-10 border-b border-gray-200'>
+        <div className='flex items-center gap-2 p-4'>
+          {
+            tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={classNames(
+                  activeTab === tab.id ? 'bg-gray-200 text-gray-800' : 'text-gray-600 hover:text-gray-800',
+                  'rounded-md px-3 py-2 text-sm font-medium cursor-pointer',
+                  'hover:bg-gray-100'
+                )}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))
+          }
+        </div>
       </div>
-      <div className="overflow-y-scroll overflow-x-scroll lg:h-[calc(60vh-40px)]">
+      <div className='p-4 overflow-y-auto flex-1'>
         {
           activeTab === OVERVIEW_TAB_ID && (
             <OverviewTab />
@@ -626,70 +628,6 @@ function Tutorial(): React.ReactElement {
           )
         }
       </div>
-    </div>
-  )
-}
-
-
-const shouldShowTutorialAtStart = () => {
-  const url = new URL(window.location.href);
-  const tutorialParam = url.searchParams.get(URL_PARAM_SHOW_TUTORIAL);
-  if (tutorialParam === 'true') {
-    return true;
-  } else if (tutorialParam === 'false') {
-    return false;
-  }
-  // Default to showing the tutorial on desktop
-  return window.innerWidth > 1024;
-};
-const URL_PARAM_SHOW_TUTORIAL = 'tutorial';
-export default function TutorialContainer(): React.ReactElement {
-  const [showTutorial, setShowTutorial] = useState(shouldShowTutorialAtStart());
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set(URL_PARAM_SHOW_TUTORIAL, showTutorial.toString());
-    window.history.replaceState({}, '', url.toString());
-    if (!showTutorial) {
-      const url = new URL(window.location.href);
-      url.searchParams.set(URL_PARAM_TUTORIAL_TAB, '');
-      window.history.replaceState({}, '', url.toString());
-    }
-  }, [showTutorial]);
-
-
-  return (
-    <div
-      className={
-        classNames(
-          'bg-white py-4 rounded-t-md lg:rounded-t-none lg:rounded-b-md border-t border-gray-200 text-slate-800 border-b border-gray-200 lg:shadow-lg absolute top-0 lg:top-auto lg:bottom-0 left-0 right-0 z-10 bg-white h-14 bg-white z-20 lg:w-3/5',
-          showTutorial && 'h-screen lg:h-auto'
-        )
-      }
-    >
-      <div
-        className='flex items-center justify-between cursor-pointer pb-2'
-        onClick={() => setShowTutorial(!showTutorial)}
-      >
-        <div className='px-4'>
-          Learn more about estimates
-        </div>
-        {
-          !showTutorial ? (
-            <>
-              <ChevronDoubleUpIcon className='w-4 h-4 hidden lg:block' />
-              <ChevronDoubleDownIcon className='w-4 h-4 block lg:hidden' />
-            </>
-          ) : (
-            <>
-              <ChevronDoubleDownIcon className='w-4 h-4 hidden lg:block' />
-              <ChevronDoubleUpIcon className='w-4 h-4 block lg:hidden' />
-            </>
-          )
-        }
-      </div>
-      {showTutorial && (
-        <Tutorial />
-      )}
     </div>
   )
 }
