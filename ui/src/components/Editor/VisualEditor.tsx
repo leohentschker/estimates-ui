@@ -1,4 +1,4 @@
-import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, Edge, Node, useReactFlow, useNodesState, useEdgesState } from '@xyflow/react';
+import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, Edge, Node, useReactFlow, useNodesState, useEdgesState, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Goal, Relation, Variable, VariableType } from './proofGraph';
@@ -10,6 +10,11 @@ import TacticNode from './TacticNode';
 import TacticEdge from './TacticEdge';
 import Dagre from 'dagre';
 import { v4 as uuidv4 } from 'uuid';
+import { useAppDispatch } from '../../store';
+import { selectEdges, setEdges, setNodes, onNodesChange, onEdgesChange, removeEdge } from '../../features/proof/proofSlice';
+import { selectNodes } from '../../features/proof/proofSlice';
+import { useAppSelector } from '../../store';
+import { setCode } from '../../features/pyodide/pyodideSlice';
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
@@ -23,9 +28,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
       height: node.measured?.height ?? 0,
     }),
   );
-
   Dagre.layout(g);
-
   return {
     nodes: nodes.map((node) => {
       const position = g.node(node.id);
@@ -37,37 +40,14 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
   };
 };
 
-export default function VisualEditor({ setCode }: { setCode: (code: string) => void }): React.ReactElement {
+export default function VisualEditor(): React.ReactElement {
   const [mode, setMode] = useState<'assumption' | 'tactic'>('assumption');
   const containerRef = useRef<HTMLDivElement>(null);
   const { fitView } = useReactFlow();
-  const [nodes, setNodes, onNodesChange] = useNodesState([
-    {
-      id: 'base-node',
-      position: { x: 0, y: 0 },
-      data: {
-        selected: true,
-      },
-      type: 'base',
-    },
-    {
-      id: 'goal-node',
-      position: { x: 0, y: 300 },
-      data: {
-      },
-      type: 'goal',
-    }
-  ] as Node[]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([
-    {
-      id: 'base-node-goal-edge',
-      source: 'base-node',
-      target: 'goal-node',
-      type: 'tactic-edge',
-      data: { tactic: 'sorry' },
-      animated: true,
-    }
-  ] as Edge[]);
+  
+  const nodes = useAppSelector(selectNodes);
+  const edges = useAppSelector(selectEdges);
+  const appDispatch = useAppDispatch();
 
   const [variables, setVariables] = useState<Variable[]>([
     {
@@ -131,27 +111,10 @@ export default function VisualEditor({ setCode }: { setCode: (code: string) => v
       }
     ];
     const layouted = getLayoutedElements(newNodes, newEdges, { direction: 'TB' });
-    setNodes([...layouted.nodes]);
-    setEdges([...layouted.edges]);
+    appDispatch(setNodes([...layouted.nodes]));
+    appDispatch(setEdges([...layouted.edges]));
     fitView();
   };
-
-  const handleRemoveEdge = (edgeId: string) => {
-    const edgeToRemove = edges.find((e) => e.id === edgeId);
-    const target = nodes.find((n) => n.id === edgeToRemove?.target);
-    const newEdges = edges.filter((e) => e.id !== edgeId);
-    const newNodes = nodes.filter((n) => n.id !== target?.id);
-    const edgeSource = edgeToRemove?.source;
-    setEdges([...newEdges, {
-      id: uuidv4(),
-      source: edgeSource!,
-      target: 'goal-node',
-      type: 'tactic-edge',
-      data: { tactic: 'sorry' },
-      animated: true,
-    }]);
-    setNodes(newNodes);
-  }
 
   const nodeTypes: NodeTypes = useMemo(() => ({
     base: (props) => (
@@ -177,7 +140,7 @@ export default function VisualEditor({ setCode }: { setCode: (code: string) => v
     'tactic-edge': props => (
       <TacticEdge
         {...props}
-        handleRemoveEdge={handleRemoveEdge}
+        handleRemoveEdge={() => appDispatch(removeEdge(props.id))}
       />
     ),
   }), [edges]);
@@ -186,6 +149,9 @@ export default function VisualEditor({ setCode }: { setCode: (code: string) => v
     const codeLines = [
       'from estimates.main import *',
       'p = ProofAssistant();',
+      'global output',
+      'output = {}',
+      'def store_output(key):\n\ttry:\n\t\toutput[key] = str(p);\n\texcept:\n\t\tpass',
     ];
     for (const variable of variables) {
       codeLines.push(`${variable.name} = p.var("${variable.type}", "${variable.name}");`);
@@ -204,14 +170,16 @@ export default function VisualEditor({ setCode }: { setCode: (code: string) => v
     codeLines.push(`p.begin_proof(${parsedGoal});`);
 
     for (const edge of edges) {
-      if (edge.data?.tactic !== 'sorry') {
-        codeLines.push(`p.use(${edge.data?.tactic});`);
+      const tacticName = (edge.data?.tactic ?? '').toString();
+      if (!['sorry', 'win'].includes(tacticName)) {
+        codeLines.push(`p.use(${tacticName});`);
+        codeLines.push(`store_output("${edge.target}");`);
       }
     }
     codeLines.push(`p.proof()`);
 
     const code = codeLines.join('\n');
-    setCode(code);
+    appDispatch(setCode(code));
   }, [edges, nodes]);
 
   return (
@@ -231,8 +199,8 @@ export default function VisualEditor({ setCode }: { setCode: (code: string) => v
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={0.1}
           maxZoom={4}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+          onNodesChange={changes => appDispatch(onNodesChange(changes))}
+          onEdgesChange={changes => appDispatch(onEdgesChange(changes))}
         >
           <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
         </ReactFlow>

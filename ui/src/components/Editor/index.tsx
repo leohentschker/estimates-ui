@@ -4,13 +4,7 @@ import { useState } from 'react';
 import VisualEditor from './VisualEditor';
 
 
-export default function Editor({
-  code,
-  setCode
-}: {
-  code: string;
-  setCode: (code: string) => void;
-}) {
+export default function Editor() {
   const [tab, setTab] = useState('visual');
   return (
     <div className='lg:flex-3 h-full flex flex-col min-h-[25vh] lg:min-h-[30vh]'>
@@ -30,12 +24,12 @@ export default function Editor({
           </div>
           {
             tab === 'code' && (
-              <TextEditor code={code} setCode={setCode} />
+              <TextEditor />
             )
           }
           {
             tab === 'visual' && (
-              <VisualEditor setCode={setCode} />
+              <VisualEditor />
             )
           }
         </div>

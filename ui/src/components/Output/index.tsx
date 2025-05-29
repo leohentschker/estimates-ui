@@ -3,32 +3,38 @@ import classNames from 'classnames';
 import { Dialog, DialogPortal, DialogTitle } from '../Dialog';
 import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
 import OutputErrorBoundary from './OutputErrorBoundary';
-import { usePyodideOutput } from './pyodideHooks';
+import { loadCustomPyodide, runProof, selectCode, selectError, selectIsJaspiError, selectLoading, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { useDebounce } from 'use-debounce';
 
-interface OutputProps {
-  code: string;
-}
+function Output(): React.ReactElement {
+  const appDispatch = useAppDispatch();
 
-function Output({
-  code
-}: OutputProps): React.ReactElement {
-  const {
-    result,
-    loading,
-    pyodide,
-    stdout,
-    loadPyodide,
-    isJaspiError,
-    isError,
-    serializedResult
-  } = usePyodideOutput({ code });
   const [isJaspiErrorDialogOpen, setIsJaspiErrorDialogOpen] = useState(false);
+  const pyodideLoaded = useAppSelector(selectPyodideLoaded);
+  const isJaspiError = useAppSelector(selectIsJaspiError);
+  const serializedResult = useAppSelector(selectSerializedResult);
+  const error = useAppSelector(selectError);
+  const stdout = useAppSelector(selectStdout);
+  const loading = useAppSelector(selectLoading);
+  const code = useAppSelector(selectCode);
+
+  const [debouncedCode] = useDebounce(code, 200);
 
   useEffect(() => {
     if (isJaspiError) {
       setIsJaspiErrorDialogOpen(true);
     }
   }, [isJaspiError]);
+
+  useEffect(() => {
+    if (!pyodideLoaded) {
+      return;
+    }
+    if (debouncedCode) {
+      appDispatch(runProof(debouncedCode));
+    }
+  }, [pyodideLoaded, debouncedCode]);
 
   return (
     <>
@@ -56,7 +62,7 @@ function Output({
       {/* Loading indicator when pyodide is not loaded */}
       <div className="h-full w-full flex flex-col">
         {
-          !pyodide && (
+          !pyodideLoaded && (
             <div className='flex items-center justify-center py-4'>
               <div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500'></div>
               <span className='ml-2 text-indigo-600'>Loading estimates...</span>
@@ -86,12 +92,12 @@ function Output({
 
         {/* Return result of the editor, if any */}
         {
-          result && (
+          serializedResult && (
             <div className="p-4">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Result:</h3>
               <pre className={classNames('bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4  whitespace-pre-wrap break-words', {
-                'border-green-500': !isError,
-                'border-red-500': isError,
+                'border-green-500': !error,
+                'border-red-500': error,
               })}>
                 {serializedResult}
               </pre>
@@ -102,11 +108,11 @@ function Output({
         {/* Button to restart the editor */}
         <div className='flex-1' />
         {
-          pyodide && (
+          pyodideLoaded && (
             <div className='flex justify-end w-full'>
               <div
                 className='m-5 px-3 py-2 bg-sky-900 text-white rounded-md cursor-pointer hover:bg-sky-800 transition-colors duration-200 w-full text-center w-full lg:w-fit'
-                onClick={loadPyodide}>
+                onClick={() => appDispatch(loadCustomPyodide())}>
                 Restart Editor
               </div>
             </div>
@@ -121,15 +127,11 @@ function Output({
  * Wrap our component in an error boundary so that we can catch errors that break out of the editor
  * from Pyodide unexpectedly and enable refreshing the editor.
  */
-export default function OutputContainer({
-  code
-}: {
-  code: string;
-}) {
+export default function OutputContainer() {
   return (
     <div className='lg:flex-2 lg:max-w-1/2 shadow-lg'>
       <OutputErrorBoundary>
-        <Output code={code} />
+        <Output />
       </OutputErrorBoundary>
     </div>
   )

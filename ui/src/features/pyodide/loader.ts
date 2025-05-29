@@ -35,6 +35,7 @@ export async function loadAndRunPyodide({
         await z3._init()
         await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
     `);
+    console.log('Completed installations');
     return pyodide;
   } catch (error) {
     console.error(error);

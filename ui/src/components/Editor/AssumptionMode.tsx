@@ -7,6 +7,8 @@ import { Select } from '../Select';
 import LatexString from './LatexString';
 import { Goal, Relation, Variable, VariableType } from './proofGraph';
 import { TrashIcon } from '@heroicons/react/16/solid';
+import { useAppDispatch } from '../../store';
+import { useAppSelector } from '../../store';
 
 
 export default function AssumptionMode({
@@ -26,11 +28,12 @@ export default function AssumptionMode({
   setGoal: (goal: Goal) => void;
   addVariable: (type: VariableType, namePrefix: string) => void;
 }) {
+
   return (
     <div className='flex flex-col gap-2 h-full'>
-        <div className='font-bold'>
-          Assumptions Mode
-        </div>
+      <div className='font-bold'>
+        Assumptions Mode
+      </div>
       <div className='font-medium'>
         Declare variables
       </div>

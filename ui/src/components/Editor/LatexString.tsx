@@ -8,6 +8,7 @@ export default function LatexString({ latex }: { latex: string }) {
       const rendered = katex.renderToString(latex);
       return rendered;
     } catch (error) {
+      console.error(error);
       return latex;
     }
   }, [latex]);
