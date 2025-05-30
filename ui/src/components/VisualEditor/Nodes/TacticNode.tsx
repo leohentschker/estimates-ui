@@ -1,5 +1,4 @@
 import { Edge, Handle, Position } from "@xyflow/react";
-import { useState } from "react";
 import LatexString from "../LatexString";
 import { useAppSelector } from "../../../store";
 import { selectProofOutput } from "../../../features/pyodide/pyodideSlice";
