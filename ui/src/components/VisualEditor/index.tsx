@@ -26,7 +26,12 @@ export default function VisualEditor(): React.ReactElement {
   const goal = useAppSelector(selectGoal);
 
   const handleApplyTacticToNode = (nodeId: string, tactic: string) => {
-    appDispatch(applyTactic({ nodeId, tactic }));
+    appDispatch(applyTactic({ nodeId, tactic, isLemma: false }));
+    fitView();
+  };
+
+  const handleApplyLemmaToNode = (nodeId: string, lemma: string) => {
+    appDispatch(applyTactic({ nodeId, tactic: lemma, isLemma: true }));
     fitView();
   };
 
@@ -35,6 +40,7 @@ export default function VisualEditor(): React.ReactElement {
       <BaseNode
         {...props}
         applyTacticToNode={handleApplyTacticToNode}
+        applyLemmaToNode={handleApplyLemmaToNode}
         relations={relations}
         variables={variables}
         edges={edges}
@@ -46,6 +52,7 @@ export default function VisualEditor(): React.ReactElement {
         {...props}
         edges={edges}
         applyTacticToNode={handleApplyTacticToNode}
+        applyLemmaToNode={handleApplyLemmaToNode}
       />
     ),
   }), [variables, relations, edges, goal]);
@@ -74,6 +81,7 @@ export default function VisualEditor(): React.ReactElement {
           draggable={false}
           nodesDraggable={true}
           nodesConnectable={false}
+          onNodesDelete={() => false}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           contentEditable={false}

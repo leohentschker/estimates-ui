@@ -13,18 +13,23 @@ const stripEstimatesPrefixes = (result: string) => {
     .replace(/: int/g, '\\in\\mathbb{Z},\\\\')
     .replace(/: real/g, '\\in\\mathbb{R},\\\\')
     .replace(/: nat/g, '\\in\\mathbb{N},\\\\')
+    .replace(/: nonneg_real/g, '\\in\\mathbb{R}^+_0,\\\\')
+    .replace(/: nonneg_int/g, '\\in\\mathbb{Z}^+_0,\\\\')
     .replace(/: pos_int/g, '\\in\\mathbb{Z}^+,\\\\')
     .replace(/: pos_real/g, '\\in\\mathbb{R}^+,\\\\')
     .replace(/This is goal \d+ of \d+/, '')
     .trim();
 }
 
-export default function TacticNode({ 
+export default function TacticNode({
   id,
   edges,
-  applyTacticToNode
+  applyTacticToNode,
+  applyLemmaToNode
 }: {
-  id: string, edges: Edge[], applyTacticToNode: (nodeId: string, tactic: string) => void
+  id: string, edges: Edge[];
+  applyTacticToNode: (nodeId: string, tactic: string) => void;
+  applyLemmaToNode: (nodeId: string, lemma: string) => void;
 }) {
   const proofOutput = useAppSelector(selectProofOutput);
 
@@ -63,6 +68,7 @@ export default function TacticNode({
       {
         (!tactic || tactic.data?.tactic === 'sorry') && (
           <TacticPopover
+            applyLemmaToNode={applyLemmaToNode}
             applyTacticToNode={applyTacticToNode}
             nodeId={id}
           />

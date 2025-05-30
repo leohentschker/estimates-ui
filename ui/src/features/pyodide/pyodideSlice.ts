@@ -124,8 +124,13 @@ export const convertProofGraphToCode = createAsyncThunk('pyodide/convertProofGra
 
   for (const edge of edges) {
     const tacticName = (edge.data?.tactic ?? '').toString();
+    const isLemma = edge.data?.isLemma ?? false;
     if (!['sorry', 'win'].includes(tacticName)) {
-      codeLines.push(`p.use(${tacticName});`);
+      if (isLemma) {
+        codeLines.push(`p.use_lemma(${tacticName});`);
+      } else {
+        codeLines.push(`p.use(${tacticName});`);
+      }
       codeLines.push(`store_output("${edge.target}");`);
     }
   }

@@ -79,7 +79,7 @@ export default function AssumptionMode({
           ))
         }
       </div>
-      <div className='flex gap-2'>
+      <div className='flex gap-2 w-full overflow-x-auto'>
         <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'real' }]))} size='xs' variant='outline'>
           <LatexString latex='x_1' /> add real
         </Button>

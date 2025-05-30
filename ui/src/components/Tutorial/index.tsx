@@ -29,7 +29,7 @@ const tabs = [
 
 function TutorialArticle({ children }: { children: React.ReactNode }): React.ReactElement {
   return (
-    <article className="prose lg:prose-md max-w-none lg:max-w-2xl text-justify">
+    <article className="prose lg:prose-md max-w-none lg:max-w-xl text-justify">
       {children}
     </article>
   )
@@ -507,32 +507,41 @@ function LemmasTab(): React.ReactElement {
       </p>
 
       to prove a slight variant of that lemma:
-      <pre><code>&gt;&gt;&gt; from estimates.main import *
-        <br />
-        &gt;&gt;&gt;
-        p = amgm_exercise()
-        <br />
-        Starting proof.  Current proof state:
-        <br />
-        x: nonneg_real
-        <br />
-        y: nonneg_real
-        <br />
-        |- 2*x*y &lt;= x**2 + y**2
-        <br />
-        &gt;&gt;&gt; x,y = p.get_vars("x","y")
-        <br />
-        &gt;&gt;&gt; p.use_lemma(Amgm(x**2,y**2))
-        <br />
-        Applying lemma am_gm(x**2, y**2) to conclude this: x**1.0*y**1.0 &lt;= x**2/2 + y**2/2.
-        <br />
-        1 goal remaining.
-        <br />
-        &gt;&gt;&gt; p.use(Linarith())
-        <br />
-        Goal solved!
-        <br />
-        Proof complete!</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> from estimates.main import *',
+          '>>>',
+          'p = amgm_exercise()',
+          'Starting proof.  Current proof state:',
+          'x: nonneg_real',
+          'y: nonneg_real',
+          '|- 2*x*y <= x**2 + y**2',
+          '>>> x,y = p.get_vars("x","y")',
+          '>>> p.use_lemma(Amgm(x**2,y**2))',
+          'Applying lemma am_gm(x**2, y**2) to conclude this: x**1.0*y**1.0 <= x**2/2 + y**2/2.',
+          '1 goal remaining.',
+          '>>> p.use(Linarith())',
+          'Goal solved!',
+          'Proof complete!'
+        ]}
+        problem={{
+          variables: [
+            {
+              name: 'x',
+              type: 'nonneg_real'
+            },
+            {
+              name: 'y',
+              type: 'nonneg_real'
+            }
+          ],
+          assumptions: [],
+          goal: {
+            input: '2*x*y <= x**2 + y**2',
+            valid: true
+          }
+        }}
+      />
     </TutorialArticle>
   )
 }
@@ -691,10 +700,10 @@ function OrdersOfMagnitudeTab(): React.ReactElement {
           <LatexString latex="X \lesssim Y" /> (also written <LatexString latex="X = O(Y)" />), which asserts that <LatexString latex="|X| \leq CY" /> for some absolute constant <LatexString latex="C" />.
         </li>
         <li>
-          <LatexString latex="X \ll Y" /> (also written <LatexString latex="X = o(Y)"/>), which asserts that for every constant <LatexString latex="\varepsilon >0" />, one has <LatexString latex="|X| \leq \varepsilon Y" /> if a suitable asymptotic parameter is large enough.
+          <LatexString latex="X \ll Y" /> (also written <LatexString latex="X = o(Y)" />), which asserts that for every constant <LatexString latex="\varepsilon >0" />, one has <LatexString latex="|X| \leq \varepsilon Y" /> if a suitable asymptotic parameter is large enough.
         </li>
         <li>
-          <LatexString latex="X \asymp Y" /> (also written <LatexString latex="X = \Theta(Y)"/>), which asserts that <LatexString latex="X \lesssim Y \lesssim X" />.
+          <LatexString latex="X \asymp Y" /> (also written <LatexString latex="X = \Theta(Y)" />), which asserts that <LatexString latex="X \lesssim Y \lesssim X" />.
         </li>
       </ul>
       <p>
@@ -866,7 +875,7 @@ export default function Tutorial(): React.ReactElement {
   }, [activeTab]);
 
   return (
-    <div className='hidden 2xl:block w-4xl border-r border-gray-200 h-full overflow-y-auto flex flex-col'>
+    <div className='hidden 2xl:block w-3xl border-r border-gray-200 h-full overflow-y-auto flex flex-col'>
       <div className='sticky top-0 bg-white z-10 border-b border-gray-200'>
         <div className='flex items-center gap-2 p-4'>
           {

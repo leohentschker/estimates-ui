@@ -22,20 +22,32 @@ export const AVAILABLE_TACTICS: Tactic[] = [
   { name: 'Log linear arithmetic', value: 'LogLinarith', arguments: [] },
 ]
 
+type Lemma = {
+  name: string;
+  arguments: 'expressions';
+  value: string;
+}
+export const AVAILABLE_LEMMAS: Lemma[] = [
+  { name: 'AM-GM Inequality', value: 'Amgm', arguments: 'expressions' },
+]
+
 export default function TacticPopover({
+  applyLemmaToNode,
   applyTacticToNode,
   nodeId
 }: {
+  applyLemmaToNode: (nodeId: string, lemma: string) => void;
   applyTacticToNode: (nodeId: string, tactic: string) => void;
   nodeId: string;
 }) {
   const [tacticSearch, setTacticSearch] = useState('');
   const [tacticOpen, setTacticOpen] = useState(false);
 
-  const [tacticSelectStep, setTacticSelectStep] = useState<'select' | 'arguments'>('select');
+  const [tacticSelectStep, setTacticSelectStep] = useState<'select' | 'arguments' | 'lemma'>('select');
   const [selectedTactic, setSelectedTactic] = useState<Tactic>();
   const [tacticArguments, setTacticArguments] = useState<string[]>([]);
-
+  const [selectedLemma, setSelectedLemma] = useState<Lemma>();
+  const [lemmaArguments, setLemmaArguments] = useState<string>('');
   const variables = useAppSelector(selectVariables);
   const hypotheses = useAppSelector(selectAssumptions);
 
@@ -73,8 +85,12 @@ export default function TacticPopover({
                   autoFocus
                   value={tacticSearch}
                   onChange={(e) => setTacticSearch(e.target.value)}
+                  className="mb-4"
                 />
-                <div>
+                <div className="text-sm font-bold">
+                  Tactics
+                </div>
+                <div className="max-h-32 overflow-y-auto">
                   {AVAILABLE_TACTICS.filter(tactic => tactic.name.toLowerCase().includes(tacticSearch.toLowerCase())).map(tactic => (
                     <div
                       key={tactic.value}
@@ -97,9 +113,76 @@ export default function TacticPopover({
                     </div>
                   ))}
                 </div>
+                <div className="text-sm font-bold">
+                  Lemmas
+                </div>
+                <div className="overflow-y-auto">
+                  {AVAILABLE_LEMMAS.filter(lemma => lemma.name.toLowerCase().includes(tacticSearch.toLowerCase())).map(lemma => (
+                    <div
+                      key={lemma.name}
+                      className={
+                        classNames(
+                          'cursor-pointer hover:bg-gray-100 rounded-md p-2',
+                          selectedLemma === lemma && 'bg-gray-100'
+                        )
+                      }
+                      onClick={() => {
+                        setSelectedLemma(lemma);
+                        setTacticSelectStep('lemma');
+                        setLemmaArguments('');
+                      }}
+                    >
+                      {lemma.name}
+                    </div>
+                  ))}
+
+                </div>
               </>
             )
           }
+
+          {
+            tacticSelectStep === 'lemma' && (
+              <>
+                <div>
+                  Arguments for {selectedLemma?.name}
+                </div>
+                <div className="flex flex-col gap-2 py-5">
+                  <div className="flex items-center">
+                    <span>{selectedLemma?.value}(</span>
+                    <Input
+                      value={lemmaArguments}
+                      onChange={(e) => setLemmaArguments(e.target.value)}
+                      className="col-span-2 mx-2"
+                      placeholder="x**2,y**2"
+                    />
+                    <span>)</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      setTacticSelectStep('select');
+                      setLemmaArguments('');
+                    }}
+                    className="w-full" variant='outline' size='xs'>
+                    <LatexString latex={`<-`} /> back
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      applyLemmaToNode(nodeId, `${selectedLemma?.value}(${lemmaArguments})`);
+                      setTacticOpen(false);
+                    }}
+                    disabled={lemmaArguments.length === 0}
+                    className="w-full" variant='primary' size='xs'
+                  >
+                    <LatexString latex={`+`} /> apply lemma
+                  </Button>
+                </div>
+              </>
+            )
+          }
+
           {
             tacticSelectStep === 'arguments' && (
               <>
@@ -139,6 +222,7 @@ export default function TacticPopover({
                     <Button
                       onClick={() => {
                         applyTacticToNode(nodeId, `${selectedTactic?.value}("${tacticArguments.join(', ')}")`);
+                        setTacticOpen(false);
                       }}
                       disabled={tacticArguments.length === 0}
                       className="w-full" variant='primary' size='xs'
