@@ -87,14 +87,16 @@ export default function AssumptionMode({
           <LatexString latex='z_1' /> add integer
         </Button>
         <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'bool' }]))} size='xs' variant='outline'>
-          <LatexString latex='b_1' /> add bool
+            <LatexString latex='b_1' /> add bool
+          </Button>
+        <div className='hidden 2xl:flex gap-2'>
+          <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'pos_int' }]))} size='xs' variant='outline'>
+            <LatexString latex='p_1' /> add positive integer
+          </Button>
+          <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'pos_real' }]))} size='xs' variant='outline'>
+            <LatexString latex='r_1' /> add positive real
         </Button>
-        <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'pos_int' }]))} size='xs' variant='outline'>
-          <LatexString latex='p_1' /> add positive integer
-        </Button>
-        <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'pos_real' }]))} size='xs' variant='outline'>
-          <LatexString latex='r_1' /> add positive real
-        </Button>
+        </div>
       </div>
       <div className='font-medium'>
         Define hypotheses

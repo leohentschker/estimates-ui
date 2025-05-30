@@ -41,7 +41,7 @@ export default function BaseNode({
   return (
       <div className='flex flex-col gap-2'>
         <div
-          className='basenode border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center'
+          className='basenode border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center flex flex-col gap-2'
         >
           {
             variablesByTypeLatex ? (

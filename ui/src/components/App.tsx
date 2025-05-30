@@ -1,15 +1,13 @@
 import React from 'react';
+import { ReactFlowProvider } from '@xyflow/react';
 import Estimates from './Estimates';
 import '../style.css';
-import { ReactFlowProvider } from '@xyflow/react';
 
 function App(): React.ReactElement {
   return (
-    <div className="min-h-screen">
-      <ReactFlowProvider>
-        <Estimates />
-      </ReactFlowProvider>
-    </div>
+    <ReactFlowProvider>
+      <Estimates />
+    </ReactFlowProvider>
   );
 }
 

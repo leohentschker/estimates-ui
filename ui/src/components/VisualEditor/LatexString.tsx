@@ -12,5 +12,5 @@ export default function LatexString({ latex }: { latex: string }) {
       return latex;
     }
   }, [latex]);
-  return <div dangerouslySetInnerHTML={{ __html: renderedContent }} />;
+  return <span dangerouslySetInnerHTML={{ __html: renderedContent }} />;
 }
