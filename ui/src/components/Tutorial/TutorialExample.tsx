@@ -49,7 +49,7 @@ export default function TutorialExample({
             onClick={() => {
               appDispatch(loadProblem(problem));
               if (tactic) {
-                appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target }));
+                appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }));
               }
             }}>
             Load problem
@@ -60,7 +60,7 @@ export default function TutorialExample({
         tactic && !problem && (
           <Button
             className="absolute top-2 right-2 text-sm text-gray-800"
-            onClick={() => appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target }))}
+            onClick={() => appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }))}
             disabled={proofSolved}
           >
             Apply tactic

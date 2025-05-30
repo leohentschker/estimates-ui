@@ -30,7 +30,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
   };
 };
 
-export type VariableType = 'pos_real' | 'real' | 'int' | 'bool' | 'pos_int';
+export type VariableType = 'pos_real' | 'real' | 'int' | 'bool' | 'pos_int' | 'nonneg_real';
 
 export type Variable = {
   name: string;
@@ -54,6 +54,7 @@ export const TYPE_TO_SET = {
   real: '\\mathbb{R}',
   int: '\\mathbb{Z}',
   bool: '\\mathbb{B}',
+  nonneg_real: '\\mathbb{R}_{\\geq 0}',
 }
 
 interface ProofState {
@@ -73,6 +74,7 @@ const initialState: ProofState = {
         selected: true,
       },
       type: 'base',
+      deletable: false
     },
     {
       id: 'goal-node',
@@ -80,6 +82,7 @@ const initialState: ProofState = {
       data: {
       },
       type: 'goal',
+      deletable: false
     }
   ],
   edges: [
@@ -90,6 +93,7 @@ const initialState: ProofState = {
       type: 'tactic-edge',
       data: { tactic: 'sorry' },
       animated: true,
+      deletable: false
     }
   ],
   variables: [
@@ -231,17 +235,20 @@ export const proofSlice = createSlice({
     applyTactic: (state, action: PayloadAction<{
       nodeId: string;
       tactic: string;
+      isLemma: boolean;
     }>) => {
       const newNodeId = uuidv4();
       const newNodes = [...state.nodes, {
         id: newNodeId,
         data: {
           selected: true,
+          isLemma: action.payload.isLemma,
         },
         type: 'tactic',
         position: { x: 0, y: 0 },
+        deletable: false
       }];
-  
+
       const newEdgeId = uuidv4();
       const newEdges = [
         ...state.edges.filter(edge => edge.data?.tactic !== 'sorry'),
@@ -254,6 +261,7 @@ export const proofSlice = createSlice({
             tactic: 'sorry'
           },
           animated: true,
+          deletable: false
         },
         {
           id: uuidv4(),
@@ -261,8 +269,10 @@ export const proofSlice = createSlice({
           target: newNodeId,
           type: 'tactic-edge',
           data: {
-            tactic: action.payload.tactic
+            tactic: action.payload.tactic,
+            isLemma: action.payload.isLemma
           },
+          deletable: false
         }
       ];
       const layoutResult = getLayoutedElements(newNodes, newEdges, { direction: 'TB' });
@@ -277,7 +287,7 @@ export const proofSlice = createSlice({
   },
 });
 
-export const { 
+export const {
   setNodes,
   setEdges,
   onNodesChange,

@@ -7,12 +7,14 @@ import TacticPopover from "./TacticPopover";
 
 export default function BaseNode({
   applyTacticToNode,
+  applyLemmaToNode,
   relations,
   variables,
   edges,
   id
 }: {
   applyTacticToNode: (nodeId: string, tactic: string) => void;
+  applyLemmaToNode: (nodeId: string, lemma: string) => void;
   relations: Relation[];
   variables: Variable[];
   edges: Edge[];
@@ -69,6 +71,7 @@ export default function BaseNode({
           (!tactic || tactic?.data?.tactic === 'sorry') && (
             <TacticPopover
               applyTacticToNode={applyTacticToNode}
+              applyLemmaToNode={applyLemmaToNode}
               nodeId={id}
             />
           )
