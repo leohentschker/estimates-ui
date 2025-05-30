@@ -846,7 +846,7 @@ const getInitialTab = () => {
   const url = new URL(window.location.href);
   const tutorialParam = url.searchParams.get(URL_PARAM_TUTORIAL_TAB);
   if (tutorialParam === 'overview') {
-    return OVERVIEW_TAB_ID;
+    return HOW_IT_WORKS_TAB_ID;
   } else if (tutorialParam === 'how-it-works') {
     return HOW_IT_WORKS_TAB_ID;
   } else if (tutorialParam === 'creating-problems') {
@@ -854,7 +854,7 @@ const getInitialTab = () => {
   } else if (tutorialParam === 'lemmas') {
     return LEMMAS_TAB_ID;
   }
-  return OVERVIEW_TAB_ID;
+  return HOW_IT_WORKS_TAB_ID;
 }
 
 export default function Tutorial(): React.ReactElement {
