@@ -17,12 +17,13 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        working-directory: ui
         
     - name: Install dependencies
-      run: npm ci
-      working-directory: ui
+      run: |
+        cd ui
+        npm ci
       
     - name: Build
-      run: npm run build
-      working-directory: ui
+      run: |
+        cd ui
+        npm run build
