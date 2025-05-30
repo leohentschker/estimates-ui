@@ -26,6 +26,8 @@ export async function loadAndRunPyodide({
         import micropip
         await micropip.install("micropip")
         await micropip.install("sympy")
+        await micropip.install("antlr4-python3-runtime==4.11")
+        print ('antlr4-python3-runtime installed')
     `);
     console.log("installing z3");
     await pyodide.runPythonAsync(`
@@ -35,6 +37,7 @@ export async function loadAndRunPyodide({
         await z3._init()
         await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
     `);
+    console.log('Completed installations');
     return pyodide;
   } catch (error) {
     console.error(error);
