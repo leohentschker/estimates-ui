@@ -1,10 +1,3 @@
-import katex from 'katex';
-
-const parseKatex = (latex: string) => {
-  const ast = (katex as any).__parse(latex);
-  return ast;
-}
-
 const LATEX_TO_PYTHON_REPLACEMENTS = [
   {
     latexRegex: /\\lor/g,

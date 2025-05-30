@@ -7,7 +7,7 @@ import GoalNode from './Nodes/GoalNode';
 import TacticNode from './Nodes/TacticNode';
 import TacticEdge from './TacticEdge';
 import { useAppDispatch } from '../../store';
-import { selectEdges, onNodesChange, onEdgesChange, removeEdge, resetProof, selectVariables, selectAssumptions, selectGoal, setVariables, setGoal, setAssumptions, applyTactic } from '../../features/proof/proofSlice';
+import { selectEdges, onNodesChange, onEdgesChange, removeEdge, resetProof, selectVariables, selectAssumptions, selectGoal, setVariables, applyTactic } from '../../features/proof/proofSlice';
 import { selectNodes } from '../../features/proof/proofSlice';
 import { useAppSelector } from '../../store';
 import { convertProofGraphToCode } from '../../features/pyodide/pyodideSlice';
