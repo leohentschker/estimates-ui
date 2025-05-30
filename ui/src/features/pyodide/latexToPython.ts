@@ -1,51 +1,84 @@
-const REPLACEMENTS = [
+import katex from 'katex';
+
+const parseKatex = (latex: string) => {
+  const ast = (katex as any).__parse(latex);
+  return ast;
+}
+
+const LATEX_TO_PYTHON_REPLACEMENTS = [
   {
-    regex: /\\lor/g,
+    latexRegex: /\\lor/g,
     replacement: '|'
   },
   {
-    regex: /\\land/g,
+    latexRegex: /\\land/g,
     replacement: '&'
   },
   {
-    regex: /\\neg/g,
+    latexRegex: /\\neg/g,
     replacement: '~'
   },
   {
-    regex: /\\implies/g,
+    latexRegex: /\\implies/g,
     replacement: '->'
   },
   {
-    regex: /\\iff/g,
+    latexRegex: /\\iff/g,
     replacement: '<->'
   },
   {
-    regex: /\\exists/g,
+    latexRegex: /\\exists/g,
     replacement: 'exists'
   },
   {
-    regex: /\\forall/g,
+    latexRegex: /\\forall/g,
     replacement: 'forall'
   },
   {
-    regex: /\\in/g,
+    latexRegex: /\\in/g,
     replacement: 'in'
   },
   {
-    regex: /\\cup/g,
+    latexRegex: /\\cup/g,
     replacement: 'union'
   },
   {
-    regex: /\\cap/g,
+    latexRegex: /\\cap/g,
     replacement: 'intersection'
   },
-  
+];
+
+const PYTHON_TO_LATEX_REPLACEMENTS = [
+  {
+    pythonRegex: /\|/g,
+    replacement: '\\lor'
+  },
+  {
+    pythonRegex: /&/g,
+    replacement: '\\land'
+  },
+  {
+    pythonRegex: /~/,
+    replacement: '\\neg'
+  },
+  {
+    pythonRegex: /->/,
+    replacement: '\\implies'
+  },
 ];
 
 export const latexToPython = (latex: string) => {
   let newLatex = latex;
-  for (const replacement of REPLACEMENTS) {
-    newLatex = newLatex.replace(replacement.regex, replacement.replacement);
+  for (const replacement of LATEX_TO_PYTHON_REPLACEMENTS) {
+    newLatex = newLatex.replace(replacement.latexRegex, replacement.replacement);
   }
   return newLatex;
+};
+
+export const pythonToLatex = (python: string) => {
+  let newPython = python;
+  for (const replacement of PYTHON_TO_LATEX_REPLACEMENTS) {
+    newPython = newPython.replace(replacement.pythonRegex, replacement.replacement);
+  }
+  return newPython;
 };

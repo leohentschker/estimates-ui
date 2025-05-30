@@ -3,8 +3,34 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../store'
 import { applyEdgeChanges, applyNodeChanges, Edge, EdgeChange, Node, NodeChange } from '@xyflow/react'
 import { v4 as uuidv4 } from 'uuid';
+import Dagre from 'dagre';
 
-export type VariableType = 'pos_real' | 'real' | 'int' | 'bool';
+
+const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
+  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+  g.setGraph({ rankdir: options.direction, nodesep: 200, ranksep: 150 });
+
+  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
+  nodes.forEach((node) =>
+    g.setNode(node.id, {
+      ...node,
+      width: node.measured?.width ?? 0,
+      height: node.measured?.height ?? 0,
+    }),
+  );
+  Dagre.layout(g);
+  return {
+    nodes: nodes.map((node) => {
+      const position = g.node(node.id);
+      const x = position.x - (node.measured?.width ?? 0) / 2;
+      const y = position.y - (node.measured?.height ?? 0) / 2;
+      return { ...node, position: { x, y } };
+    }),
+    edges,
+  };
+};
+
+export type VariableType = 'pos_real' | 'real' | 'int' | 'bool' | 'pos_int';
 
 export type Variable = {
   name: string;
@@ -13,6 +39,7 @@ export type Variable = {
 
 export type Relation = {
   input: string;
+  name: string;
   valid: boolean;
 }
 
@@ -22,7 +49,8 @@ export type Goal = {
 }
 
 export const TYPE_TO_SET = {
-  pos_real: '\\mathbb{R}_{\\geq 0}',
+  pos_real: '\\mathbb{R}^+',
+  pos_int: '\\mathbb{Z}^+',
   real: '\\mathbb{R}',
   int: '\\mathbb{Z}',
   bool: '\\mathbb{B}',
@@ -77,11 +105,12 @@ const initialState: ProofState = {
   assumptions: [
     {
       input: 'x_1 + x_2 > 0',
-      valid: true
+      valid: true,
+      name: 'h1'
     }
   ],
   goal: {
-    input: 'x_1 > 0 \\lor x_2 > 0',
+    input: 'Or(x_1 > 0, x_2 > 0)',
     valid: true
   }
 };
@@ -98,6 +127,9 @@ export const proofSlice = createSlice({
     },
     setVariables: (state, action: PayloadAction<Variable[]>) => {
       state.variables = action.payload;
+    },
+    addVariables: (state, action: PayloadAction<Variable[]>) => {
+      state.variables = [...state.variables, ...action.payload];
     },
     setAssumptions: (state, action: PayloadAction<Relation[]>) => {
       state.assumptions = action.payload;
@@ -196,6 +228,52 @@ export const proofSlice = createSlice({
       state.assumptions = action.payload.assumptions;
       state.goal = action.payload.goal;
     },
+    applyTactic: (state, action: PayloadAction<{
+      nodeId: string;
+      tactic: string;
+    }>) => {
+      const newNodeId = uuidv4();
+      const newNodes = [...state.nodes, {
+        id: newNodeId,
+        data: {
+          selected: true,
+        },
+        type: 'tactic',
+        position: { x: 0, y: 0 },
+      }];
+  
+      const newEdgeId = uuidv4();
+      const newEdges = [
+        ...state.edges.filter(edge => edge.data?.tactic !== 'sorry'),
+        {
+          id: newEdgeId,
+          source: newNodeId,
+          target: 'goal-node',
+          type: 'tactic-edge',
+          data: {
+            tactic: 'sorry'
+          },
+          animated: true,
+        },
+        {
+          id: uuidv4(),
+          source: action.payload.nodeId,
+          target: newNodeId,
+          type: 'tactic-edge',
+          data: {
+            tactic: action.payload.tactic
+          },
+        }
+      ];
+      const layoutResult = getLayoutedElements(newNodes, newEdges, { direction: 'TB' });
+      state.nodes = layoutResult.nodes;
+      state.edges = layoutResult.edges;
+    },
+    fixLayout: (state) => {
+      const layoutResult = getLayoutedElements(state.nodes, state.edges, { direction: 'TB' });
+      state.nodes = layoutResult.nodes;
+      state.edges = layoutResult.edges;
+    },
   },
 });
 
@@ -212,6 +290,9 @@ export const {
   setVariables,
   setAssumptions,
   setGoal,
+  applyTactic,
+  fixLayout,
+  addVariables,
 } = proofSlice.actions;
 
 export const selectNodes = (state: RootState) => state.proof.nodes;

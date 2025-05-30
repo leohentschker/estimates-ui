@@ -1,12 +1,24 @@
 import { Edge, Handle, Position } from "@xyflow/react";
 import { useState } from "react";
 import LatexString from "../LatexString";
-import { Popover, PopoverContent, PopoverTrigger } from "../../Popover";
-import { Button } from "../../Button";
-import { Input } from "../../Input";
-import { AVAILABLE_TACTICS } from "./BaseNode";
 import { useAppSelector } from "../../../store";
 import { selectProofOutput } from "../../../features/pyodide/pyodideSlice";
+import { pythonToLatex } from "../../../features/pyodide/latexToPython";
+import TacticPopover from "./TacticPopover";
+
+const stripEstimatesPrefixes = (result: string) => {
+  return result
+    .replace(/Proof Assistant is in tactic mode./, '')
+    .replace(/Current proof state:/, '')
+    .replace(/: bool/g, '\\in\\mathbb{B},\\\\')
+    .replace(/: int/g, '\\in\\mathbb{Z},\\\\')
+    .replace(/: real/g, '\\in\\mathbb{R},\\\\')
+    .replace(/: nat/g, '\\in\\mathbb{N},\\\\')
+    .replace(/: pos_int/g, '\\in\\mathbb{Z}^+,\\\\')
+    .replace(/: pos_real/g, '\\in\\mathbb{R}^+,\\\\')
+    .replace(/This is goal \d+ of \d+/, '')
+    .trim();
+}
 
 export default function TacticNode({ 
   id,
@@ -15,34 +27,20 @@ export default function TacticNode({
 }: {
   id: string, edges: Edge[], applyTacticToNode: (nodeId: string, tactic: string) => void
 }) {
-
-  const [tacticOpen, setTacticOpen] = useState(false);
-  const [tacticSearch, setTacticSearch] = useState('');
-
   const proofOutput = useAppSelector(selectProofOutput);
 
-  const simplifiedResult = proofOutput?.[id];
+  const simplifiedResult = stripEstimatesPrefixes(proofOutput?.[id] || '');
 
   const tactic = edges.find((edge) => edge.source === id);
-
-  const cleanResult = simplifiedResult
-    ?.trim()
-    ?.replace("Proof Assistant is in tactic mode.", "")
-    ?.replace("Proof Assistant is in proof mode.", "")
-    ?.replace("Current proof state:", "")
-    ?.replace("&", "\\land")
-    ?.replace(/: real/g, "\\in \\mathbb{R} ")
-    ?.trim()
-    ?.replace(/\n/g, '\\\\ ');
 
   return (
     <div className='flex flex-col gap-2'>
       <Handle type="target" position={Position.Top} id={`${id}-top`} />
       {
-        cleanResult ? (
+        simplifiedResult ? (
           <div className="tacticnode border border-gray-300 rounded-md p-2 items-center justify-center text-center">
             <span className="text-xs">
-              <LatexString latex={cleanResult} />
+              <LatexString latex={pythonToLatex(simplifiedResult)} />
             </span>
           </div>
         ) : (
@@ -65,36 +63,10 @@ export default function TacticNode({
       }
       {
         (!tactic || tactic.data?.tactic === 'sorry') && (
-          <Popover open={tacticOpen} onOpenChange={setTacticOpen}>
-            <PopoverTrigger>
-              <Button variant='outline' size='xs'>
-                <LatexString latex={`+`} /> apply tactic
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="bg-white">
-              <div className='flex flex-col gap-2'>
-                <Input
-                  autoFocus
-                  value={tacticSearch}
-                  onChange={(e) => setTacticSearch(e.target.value)}
-                />
-                <div>
-                  {AVAILABLE_TACTICS.filter(tactic => tactic.name.toLowerCase().includes(tacticSearch.toLowerCase())).map(tactic => (
-                    <div
-                      key={tactic.value}
-                      className='cursor-pointer hover:bg-gray-100 rounded-md p-2'
-                      onClick={() => {
-                        setTacticOpen(false);
-                        applyTacticToNode(id, tactic.value);
-                      }}
-                    >
-                      {tactic.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <TacticPopover
+            applyTacticToNode={applyTacticToNode}
+            nodeId={id}
+          />
         )
       }
     </div>

@@ -2,12 +2,14 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../store'
 import { loadAndRunPyodide } from './loader';
-import { handleProofComplete, handleProofIncomplete } from '../proof/proofSlice';
+import { fixLayout, handleProofComplete, handleProofIncomplete } from '../proof/proofSlice';
 import { Edge } from '@xyflow/react';
 import { Variable, Relation, Goal } from '../proof/proofSlice';
-import { latexToPython } from './latexToPython';
 
-let customPyodide: { runPythonAsync: (code: string) => Promise<{ error?: string; result?: string, stdResults?: string[], output?: Record<string, string>; proofComplete?: boolean }>, stdResults?: string[] } | null = null;
+let customPyodide: { 
+  runPythonAsync: (code: string) => Promise<{ error?: string; result?: string, stdResults?: string[], output?: Record<string, string>; proofComplete?: boolean }>, 
+  stdResults?: string[],
+} | null = null;
 export const loadCustomPyodide = createAsyncThunk('pyodide/loadCustomPyodide', async (_, { dispatch }) => {
   let stdResults: string[] = [];
 
@@ -20,8 +22,19 @@ export const loadCustomPyodide = createAsyncThunk('pyodide/loadCustomPyodide', a
     runPythonAsync: async (code: string) => {
       stdResults = [];
       let result: any;
+      const augmentedCode = `
+from sympy.parsing.latex import parse_latex
+global output
+output = {}
+def store_output(key):
+	try:
+		output[key] = str(p);
+	except:
+		pass
+${code}
+`.trim();
       try {
-        result = await pyodide.runPythonAsync(code);
+        result = await pyodide.runPythonAsync(augmentedCode);
       } catch (error) {
         console.log('ERROR', error);
         return { error: `${error}` };
@@ -47,6 +60,7 @@ export const loadCustomPyodide = createAsyncThunk('pyodide/loadCustomPyodide', a
       } else {
         dispatch(handleProofIncomplete());
       }
+      dispatch(fixLayout());
       return {
         result,
         stdResults,
@@ -88,32 +102,24 @@ export const convertProofGraphToCode = createAsyncThunk('pyodide/convertProofGra
 ) => {
   const codeLines = [
     'from estimates.main import *',
+    'from sympy import *',
     'p = ProofAssistant();',
-    'global output',
-    'output = {}',
-    'def store_output(key):\n\ttry:\n\t\toutput[key] = str(p);\n\texcept:\n\t\tpass',
   ];
   for (const variable of variables) {
+    if (!variable.name) {
+      continue;
+    }
     codeLines.push(`${variable.name} = p.var("${variable.type}", "${variable.name}");`);
   }
-  for (const [idx, relation] of relations.entries()) {
+  for (const relation of relations) {
     if (!relation.input) {
       continue;
     }
-    const cleanedInput = latexToPython(relation.input);
-    codeLines.push(`p.assume(${cleanedInput}, "h${idx}");`);
+    codeLines.push(`p.assume(${relation.input}, "${relation.name}");`);
   }
 
-  let parsedGoal = '';
-  if (goal.input.includes('\\lor')) {
-    const [start, end] = goal.input.split('\\lor');
-    parsedGoal = `(${start}) | (${end})`;
-  } else {
-    parsedGoal = goal.input;
-  }
-  if (parsedGoal) {
-    const cleanedGoal = latexToPython(parsedGoal);
-    codeLines.push(`p.begin_proof(${cleanedGoal});`);
+  if (goal.input) {
+    codeLines.push(`p.begin_proof(${goal.input});`);
   }
 
   for (const edge of edges) {
@@ -173,6 +179,9 @@ export const pyodideSlice = createSlice({
       state.stdout = [];
     });
     builder.addCase(convertProofGraphToCode.fulfilled, (state, action) => {
+      if (!action.payload) {
+        return;
+      }
       state.code = action.payload;
     });
     builder.addCase(runProof.fulfilled, (state, action) => {

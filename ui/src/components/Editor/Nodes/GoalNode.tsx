@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { Goal } from "../proofGraph";
+import { Goal } from "../../../features/proof/proofSlice";
 import LatexString from "../LatexString";
 import { useMemo } from "react";
 

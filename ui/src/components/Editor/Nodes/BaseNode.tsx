@@ -1,19 +1,9 @@
-import { useMemo, useState } from "react";
-import { Button } from "../../Button";
-import { Input } from "../../Input";
-import { Popover, PopoverTrigger } from "../../Popover";
-import { PopoverContent } from "../../Popover";
+import { useMemo } from "react";
 import LatexString from "../LatexString";
 import { Edge, Handle, Position } from "@xyflow/react";
 import { Relation, Variable, VariableType, TYPE_TO_SET } from "../../../features/proof/proofSlice";
-
-export const AVAILABLE_TACTICS = [
-  { name: 'Linear arithmetic', value: 'Linarith()' },
-  { name: 'Contrapositive', value: 'Contrapose("h")' },
-  { name: 'Split hypothesis', value: 'SplitHyp("h")' },
-  { name: 'Cases', value: 'Cases("h1")' },
-  { name: "Simplify", value: "SimpAll()" },
-]
+import { pythonToLatex } from "../../../features/pyodide/latexToPython";
+import TacticPopover from "./TacticPopover";
 
 export default function BaseNode({
   applyTacticToNode,
@@ -31,12 +21,12 @@ export default function BaseNode({
   const tactic = edges.find((edge) => edge.source === id);
 
   const relationsLatex = useMemo(() => {
-    return relations.map((relation) => {
-      return `${relation.input}`;
+    return relations.filter((relation) => relation.input).map((relation) => {
+      return pythonToLatex(relation.input);
     }).join('\\\\');
   }, [relations.map((relation) => relation.input).join('')]);
   const variablesByTypeLatex = useMemo(() => {
-    const variabelsByType = variables.reduce((acc, variable) => {
+    const variabelsByType = variables.filter((variable) => variable.name).reduce((acc, variable) => {
       acc[variable.type] = [...(acc[variable.type] || []), variable.name];
       return acc;
     }, {} as Record<VariableType, string[]>);
@@ -48,15 +38,23 @@ export default function BaseNode({
     return latexStrings;
   }, [variables]);
 
-  const [tacticSearch, setTacticSearch] = useState('');
-  const [tacticOpen, setTacticOpen] = useState(false);
-
   return (
       <div className='flex flex-col gap-2'>
         <div
           className='basenode border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center'
         >
-          <LatexString latex={`${variablesByTypeLatex} \\\\ ${relationsLatex}`} />
+          {
+            variablesByTypeLatex ? (
+              <LatexString latex={`${variablesByTypeLatex}`} />
+            ) : (
+              <LatexString latex={'missing\\ variables'} />
+            )
+          }
+          {
+            relationsLatex && (
+              <LatexString latex={`${relationsLatex}`} />
+            )
+          }
         </div>
         {
           tactic && (
@@ -69,36 +67,10 @@ export default function BaseNode({
         }
         {
           (!tactic || tactic?.data?.tactic === 'sorry') && (
-            <Popover open={tacticOpen} onOpenChange={setTacticOpen}>
-              <PopoverTrigger>
-                <Button variant='outline' size='xs'>
-                  <LatexString latex={`+`} /> apply tactic
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="bg-white">
-                <div className='flex flex-col gap-2'>
-                  <Input
-                    autoFocus
-                    value={tacticSearch}
-                    onChange={(e) => setTacticSearch(e.target.value)}
-                  />
-                  <div>
-                    {AVAILABLE_TACTICS.filter(tactic => tactic.name.toLowerCase().includes(tacticSearch.toLowerCase())).map(tactic => (
-                      <div
-                        key={tactic.value}
-                        className='cursor-pointer hover:bg-gray-100 rounded-md p-2'
-                        onClick={() => {
-                          applyTacticToNode(id, tactic.value);
-                          setTacticOpen(false);
-                        }}
-                      >
-                        {tactic.name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <TacticPopover
+              applyTacticToNode={applyTacticToNode}
+              nodeId={id}
+            />
           )
         }
       </div>

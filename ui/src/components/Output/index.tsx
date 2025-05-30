@@ -66,7 +66,7 @@ function Output(): React.ReactElement {
       </div>
 
       {/* Loading indicator when pyodide is not loaded */}
-      <div className="flex-1 flex flex-col border-t border-gray-200">
+      <div className="flex-1 flex flex-col border-t border-gray-200 overflow-y-auto">
         {
           !pyodideLoaded && (
             <div className='flex items-center justify-center py-4'>

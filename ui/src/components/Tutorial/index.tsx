@@ -25,21 +25,29 @@ const tabs = [
   }
 ]
 
+function TutorialArticle({ children }: { children: React.ReactNode }): React.ReactElement {
+  return (
+    <article className="prose lg:prose-md max-w-none lg:max-w-2xl text-justify">
+      {children}
+    </article>
+  )
+}
+
 function OverviewTab(): React.ReactElement {
   return (
     <>
-      <article className="prose lg:prose-md">
+      <TutorialArticle>
         <p>
           This project aims to develop (in Python) a lightweight proof assistant that is substantially less powerful than full proof assistants such as Lean, Isabelle or Rocq, but which (hopefully) is easy to use to prove short, tedious tasks, such as verifying that one inequality or estimate follows from others. One specific intention of this assistant is to provide support for asymptotic estimates.
         </p>
-      </article>
+      </TutorialArticle>
     </>
   )
 }
 
 function HowItWorksTab(): React.ReactElement {
   return (
-    <article className="prose lg:prose-md max-w-none lg:max-w-2xl">
+    <TutorialArticle>
       <p>
         The assistant can be in one of two modes: Assumption mode and Tactic mode. We will get to assumption mode later, but let us first discuss tactic mode, which is the mode one ends up in when one tries any of the exercises. The format of this mode is deliberately designed to resemble the tactic mode in modern proof assistant languages such as Lean, Isabelle or Rocq.
       </p>
@@ -52,7 +60,7 @@ function HowItWorksTab(): React.ReactElement {
       <p>
         If one follows the above quick start instructions, one should now see the following:
       </p>
-      <TutorialExample 
+      <TutorialExample
         lines={[
           '>>> from estimates.main import *',
           '>>> p = linarith_exercise()',
@@ -69,24 +77,26 @@ function HowItWorksTab(): React.ReactElement {
             {
               name: 'x',
               type: 'pos_real'
-          },
-          {
-            name: 'y',
-            type: 'pos_real'
-          },
-          {
-            name: 'z',
-            type: 'pos_real'
+            },
+            {
+              name: 'y',
+              type: 'pos_real'
+            },
+            {
+              name: 'z',
+              type: 'pos_real'
             }
           ],
           assumptions: [
             {
               input: 'x < 2*y',
-            valid: true
-          },
-          {
-            input: 'y < 3*z + 1',
-            valid: true
+              valid: true,
+              name: 'h1'
+            },
+            {
+              input: 'y < 3*z + 1',
+              valid: true,
+              name: 'h2'
             }
           ],
           goal: {
@@ -116,6 +126,10 @@ function HowItWorksTab(): React.ReactElement {
           '>>> p.use(Linarith())',
           'Proof complete!'
         ]}
+        tactic={{
+          target: 'Linarith()',
+          position: 'last',
+        }}
       />
       <p>
         This may seem suspiciously easy, but one can ask Linarith to give a more detailed explanation:
@@ -138,6 +152,10 @@ function HowItWorksTab(): React.ReactElement {
           'Goal solved by linear arithmetic!',
           'Proof complete!',
         ]}
+        tactic={{
+          target: 'Linarith(verbose=True)',
+          position: 'last',
+        }}
       />
       <p>
         This gives more details as to what Linarith actually did:
@@ -167,53 +185,69 @@ function HowItWorksTab(): React.ReactElement {
       <p>
         One could ask what happens if Linarith fails to resolve the goal. With the verbose flag, it will give a specific counterexample consistent with all the inequalities it could find:
       </p>
-      <pre><code>&gt;&gt;&gt; from estimates.main import *
-        <br />
-        &gt;&gt;&gt; p = linarith_impossible_example()
-        <br />
-        Starting proof.  Current proof state:
-        <br />
-        x: pos_real
-        <br />
-        y: pos_real
-        <br />
-        z: pos_real
-        <br />
-        h1: x &lt; 2*y
-        <br />
-        h2: y &lt; 3*z + 1
-        <br />
-        |- x &lt; 7*z
-        <br />
-        &gt;&gt;&gt; p.use(Linarith(verbose=True))
-        <br />
-        Checking feasibility of the following inequalities:
-        <br />
-        1*x + -7*z &gt;= 0
-        <br />
-        1*x &gt; 0
-        <br />
-        1*y + -3*z &lt; 1
-        <br />
-        1*x + -2*y &lt; 0
-        <br />
-        1*z &gt; 0
-        <br />
-        1*y &gt; 0
-        <br />
-        Feasible with the following values:
-        <br />
-        y = 2
-        <br />
-        x = 7/2
-        <br />
-        z = 1/2
-        <br />
-        Linear arithmetic was unable to prove goal.
-        <br />
-        1 goal remaining.
-        <br />
-      </code></pre>
+      <TutorialExample
+        lines={[
+          '>>> from estimates.main import *',
+          '>>> p = linarith_impossible_example()',
+          'Starting proof.  Current proof state:',
+          'x: pos_real',
+          'y: pos_real',
+          'z: pos_real',
+          'h1: x < 2*y',
+          'h2: y < 3*z + 1',
+          '|- x < 7*z',
+          '>>> p.use(Linarith(verbose=True))',
+          'Checking feasibility of the following inequalities:',
+          '1*x + -7*z >= 0',
+          '1*x > 0',
+          '1*y + -3*z < 1',
+          '1*x + -2*y < 0',
+          '1*z > 0',
+          '1*y > 0',
+          'Feasible with the following values:',
+          'y = 2',
+          'x = 7/2',
+          'z = 1/2',
+          'Linear arithmetic was unable to prove goal.',
+          '1 goal remaining.'
+        ]}
+        problem={{
+          variables: [
+            {
+              name: 'x',
+              type: 'pos_real'
+            },
+            {
+              name: 'y',
+              type: 'pos_real'
+            },
+            {
+              name: 'z',
+              type: 'pos_real'
+            }
+          ],
+          assumptions: [
+            {
+              input: 'x < 2*y',
+              valid: true,
+              name: 'h1'
+            },
+            {
+              input: 'y < 3*z + 1',
+              valid: true,
+              name: 'h2'
+            }
+          ],
+          goal: {
+            input: 'x < 7*z',
+            valid: true
+          }
+        }}
+        tactic={{
+          target: 'Linarith(verbose=True)',
+          position: 'last',
+        }}
+      />
 
       <p>
         Here, the task given was an impossible one: to deduce <code>x &lt; 7z</code> from the hypotheses that <code>x</code>, <code>y</code>, <code>z</code> are positive reals with <code>x &lt; 2y</code> and <code>y &lt; 3z + 1</code>. A specific counterexample <code>x = 7/2</code>, <code>y = 2</code>, <code>z = 1/2</code> was given to this problem. (In this case, this means that the original problem was impossible to solve; but in general one cannot draw such a conclusion, because it may have been possible to establish the goal by using some non-inequality hypotheses).
@@ -221,132 +255,161 @@ function HowItWorksTab(): React.ReactElement {
       <p>
         Now let us consider a slightly more complicated proof, in which some branching of cases is required.
       </p>
-      <pre><code>&gt;&gt;&gt; from estimates.main import *
-        <br />
-        &gt;&gt;&gt; p = case_split_exercise()
-        <br />
-        Starting proof.  Current proof state:
-        <br />
-        P: bool
-        <br />
-        Q: bool
-        <br />
-        R: bool
-        <br />
-        S: bool
-        <br />
-        h1: P | Q
-        <br />
-        h2: R | S
-        |- (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S)</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> from estimates.main import *',
+          '>>> p = case_split_exercise()',
+          'Starting proof.  Current proof state:',
+          'P: bool',
+          'Q: bool',
+          'R: bool',
+          'S: bool',
+          'h1: P | Q',
+          'h2: R | S',
+          '|- (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S)',
+        ]}
+        problem={{
+          variables: [
+            {
+              name: 'P',
+              type: 'bool'
+            },
+            {
+              name: 'Q',
+              type: 'bool'
+            },
+            {
+              name: 'R',
+              type: 'bool'
+            },
+            {
+              name: 'S',
+              type: 'bool'
+            }
+          ],
+          assumptions: [
+            {
+              input: 'P | Q',
+              valid: true,
+              name: 'h1'
+            },
+            {
+              input: 'R | S',
+              valid: true,
+              name: 'h2'
+            }
+          ],
+          goal: {
+            input: '(P & R) | (P & S) | (Q & R) | (Q & S)',
+            valid: true
+          }
+        }}
+      />
       <p>
         Here, we have four atomic propositions (boolean variables) P, Q, R, S, with the hypothesis h1 that either P or Q is true, as well as the hypothesis h2 that either R or S is true. The objective is then to prove that one of the four statements P &amp; R (i.e., P and R are both true), P &amp; S, Q &amp; R, and Q &amp; S is true.
       </p>
       <p>
         Here we can split the hypothesis h1 : P | Q into two cases:
       </p>
-      <pre><code>&gt;&gt;&gt; p.use(Cases("h1"))
-        <br />
-        Splitting h1: P | Q into cases P, Q.
-        <br />
-        2 goals remaining.
-        <br />
-        # Let's now look at the current proof state:
-        <br />
-        &gt;&gt;&gt; print(p)
-        <br />
-        Proof Assistant is in tactic mode.  Current proof state:
-        <br />
-        P: bool
-        <br />
-        Q: bool
-        <br />
-        R: bool
-        <br />
-        S: bool
-        <br />
-        h1: P
-        <br />
-        h2: R | S
-        <br />
-        |- (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S)
-        <br />
-        This is goal 1 of 2.</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.use(Cases("h1"))',
+          'Splitting h1: P | Q into cases P, Q.',
+          '2 goals remaining.',
+        ]}
+        tactic={{
+          target: 'Cases("h1")',
+          position: 'last',
+        }}
+      />
+      <p>
+        Let's now look at the current proof state:
+      </p>
+      <TutorialExample
+        lines={[
+          '>>> print(p)',
+          'Proof Assistant is in tactic mode.  Current proof state:',
+          'P: bool',
+          'Q: bool',
+          'R: bool',
+          'S: bool',
+          'h1: P',
+          'h2: R | S',
+          '|- (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S)',
+          'This is goal 1 of 2.',
+        ]}
+      />
       <p>
         Note how the hypothesis h1 has changed from P | Q to just P. But this is just one of the two goals. We can see this by looking at the current state of the proof:
       </p>
-      <pre><code>&gt;&gt;&gt; print(p.proof())
-        <br />
-        example (P: bool) (Q: bool) (R: bool) (S: bool) (h1: P | Q) (h2: R | S): (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) := by
-        cases h1
-        <br />
-        . **sorry**
-        <br />
-        sorry</code></pre>
-
+      <TutorialExample
+        lines={[
+          '>>> print(p.proof())',
+          'example (P: bool) (Q: bool) (R: bool) (S: bool) (h1: P | Q) (h2: R | S): (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) := by',
+          'cases h1',
+          '. **sorry**',
+          'sorry',
+        ]}
+      />
       <p>
         The proof has now branched into a tree with two leaf nodes (marked ``sorry''), representing the two unresolved goals. We are currently located at the first goal (as indicated by the asterisks). We can move to the next goal:
       </p>
-      <pre><code>&gt;&gt;&gt; p.next_goal()
-        <br />
-        Moved to goal 2 of 2.
-        <br />
-        &gt;&gt;&gt; print(p.proof())
-        <br />
-        example (P: bool) (Q: bool) (R: bool) (S: bool) (h1: P | Q) (h2: R | S): (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) := by
-        <br />
-        cases h1
-        <br />
-        . sorry
-        <br />
-        **sorry**
-        <br />
-        &gt;&gt;&gt; print(p)
-        <br />
-        Proof Assistant is in tactic mode.  Current proof state:
-        <br />
-        P: bool
-        <br />
-        Q: bool
-        <br />
-        R: bool
-        <br />
-        S: bool
-        <br />
-        h1: Q
-        <br />
-        h2: R | S
-        <br />
-        |- (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S)
-        <br />
-        This is goal 2 of 2.</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.next_goal()',
+          'Moved to goal 2 of 2.',
+          '>>> print(p.proof())',
+          'example (P: bool) (Q: bool) (R: bool) (S: bool) (h1: P | Q) (h2: R | S): (P & R) | (P & S) | (Q & R) | (Q & S) := by',
+          'cases h1',
+          '. sorry',
+          '**sorry**',
+          '>>> print(p)',
+          'Proof Assistant is in tactic mode.  Current proof state:',
+          'P: bool',
+          'Q: bool',
+          'R: bool',
+          'S: bool',
+          'h1: Q',
+          'h2: R | S',
+          '|- (P & R) | (P & S) | (Q & R) | (Q & S)',
+          'This is goal 2 of 2.',
+        ]}
+      />
       <p>
         So we see that in this second branch of the proof tree, h1 is now set to Q. For further ways to navigate the proof tree, see this page.
       </p>
       <p>
         Now that we know that Q is true, we would like to use this to simplify our goal, for instance simplifying Q &amp; R to Q. This can be done using the SimpAll() tactic:
       </p>
-      <pre><code>&gt;&gt;&gt; p.use(SimpAll())
-        <br />
-        Simplified (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) to R | S using Q.
-        <br />
-        Simplified R | S to True using R | S.
-        <br />
-        Goal solved!
-        <br />
-        1 goal remaining.</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.use(SimpAll())',
+          'Simplified (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) to R | S using Q.',
+          'Simplified R | S to True using R | S.',
+          'Goal solved!',
+          '1 goal remaining.',
+        ]}
+        tactic={{
+          target: 'SimpAll()',
+          position: 'last',
+        }}
+      />
       <p>
         Here, the hypothesis Q was used to simplify the goal (using sympy's powerful simplification tools), all the way down to R | S. But this is precisely hypothesis h2, so on using that hypothesis as well, the conclusion was simplified to True, which of course closes off this goal. This then lands us automatically in the first goal, which can be solved by the same method:
       </p>
-      <pre><code>&gt;&gt;&gt; p.use(SimpAll())
-        <br />
-        Simplified (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) to R | S using P.
-        <br />
-        Simplified R | S to True using R | S.
-        <br />
-        Goal solved!
-        <br />
-        Proof complete!</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.use(SimpAll())',
+          'Simplified (P &amp; R) | (P &amp; S) | (Q &amp; R) | (Q &amp; S) to R | S using P.',
+          'Simplified R | S to True using R | S.',
+          'Goal solved!',
+          'Proof complete!',
+        ]}
+        tactic={{
+          target: 'SimpAll()',
+          position: 'last',
+        }}
+      />
       <p>
         And here is the final proof:
       </p>
@@ -361,70 +424,75 @@ function HowItWorksTab(): React.ReactElement {
       <p>
         One can combine propositional tactics with linear arithmetic tactics. Here is one example (using some propositional tactics we have not yet discussed, but whose purpose should be clear, and which one can look up in this page):
       </p>
-      <pre><code>&gt;&gt;&gt; from estimates.main import *
-        <br />
-        &gt;&gt;&gt; p = split_exercise()
-        <br />
-        Starting proof.  Current proof state:
-        <br />
-        x: real
-        <br />
-        y: real
-        <br />
-        h1: (x &gt; -1) &amp; (x &lt; 1)
-        <br />
-        h2: (y &gt; -2) &amp; (y &lt; 2)
-        <br />
-        |- (x + y &gt; -3) &amp; (x + y &lt; 3)
-        <br />
-        &gt;&gt;&gt; p.use(SplitHyp("h1"))
-        <br />
-        Decomposing h1: (x &gt; -1) &amp; (x &lt; 1) into components x &gt; -1, x &lt; 1.
-        <br />
-        1 goal remaining.
-        <br />
-        &gt;&gt;&gt; p.use(SplitHyp("h2"))
-        <br />
-        Decomposing h2: (y &gt; -2) &amp; (y &lt; 2) into components y &gt; -2, y &lt; 2.
-        <br />
-        1 goal remaining.
-        <br />
-        &gt;&gt;&gt; p.use(SplitGoal())
-        <br />
-        Split into conjunctions: x + y &gt; -3, x + y &lt; 3
-        <br />
-        2 goals remaining.
-        <br />
-        &gt;&gt;&gt; p.use(Linarith())
-        Goal solved by linear arithmetic!
-        <br />
-        1 goal remaining.
-        <br />
-        &gt;&gt;&gt; p.use(Linarith())
-        Goal solved by linear arithmetic!
-        <br />
-        Proof complete!
-        <br />
-        &gt;&gt;&gt; print(p.proof())
-        <br />
-        example (x: real) (y: real) (h1: (x &gt; -1) &amp; (x &lt; 1)) (h2: (y &gt; -2) &amp; (y &lt; 2)): (x + y &gt; -3) &amp; (x + y &lt; 3) := by
-        <br />
-        split_hyp h1
-        <br />
-        split_hyp h2
-        <br />
-        split_goal
-        <br />
-        . linarith
-        <br />
-        linarith</code></pre>
-    </article>
+      <TutorialExample
+        lines={[
+          '>>> from estimates.main import *',
+          '>>> p = split_exercise()',
+          'Starting proof.  Current proof state:',
+          'x: real',
+          'y: real',
+          'h1: (x > -1) & (x < 1)',
+          'h2: (y > -2) & (y < 2)',
+          '|- (x + y > -3) & (x + y < 3)',
+          '>>> p.use(SplitHyp("h1"))',
+          'Decomposing h1: (x > -1) & (x < 1) into components x > -1, x < 1.',
+          '1 goal remaining.',
+          '>>> p.use(SplitHyp("h2"))',
+          'Decomposing h2: (y > -2) & (y < 2) into components y > -2, y < 2.',
+          '1 goal remaining.',
+          '>>> p.use(SplitGoal())',
+          'Split into conjunctions: x + y > -3, x + y < 3',
+          '2 goals remaining.',
+          '>>> p.use(Linarith())',
+          'Goal solved by linear arithmetic!',
+          '1 goal remaining.',
+          '>>> p.use(Linarith())',
+          'Goal solved by linear arithmetic!',
+          'Proof complete!',
+          '>>> print(p.proof())',
+          'example (x: real) (y: real) (h1: (x > -1) & (x < 1)) (h2: (y > -2) & (y < 2)): (x + y > -3) & (x + y < 3) := by',
+          'split_hyp h1',
+          'split_hyp h2',
+          'split_goal',
+          '. linarith',
+          'linarith'
+        ]}
+        problem={{
+          variables: [
+            {
+              name: 'x',
+              type: 'real'
+            },
+            {
+              name: 'y',
+              type: 'real'
+            }
+          ],
+          assumptions: [
+            {
+              input: '(x > -1) & (x < 1)',
+              valid: true,
+              name: 'h1'
+            },
+            {
+              input: '(y > -2) & (y < 2)',
+              valid: true,
+              name: 'h2'
+            }
+          ],
+          goal: {
+            input: '(x + y > -3) & (x + y < 3)',
+            valid: true
+          }
+        }}
+      />
+    </TutorialArticle>
   )
 }
 
 function LemmasTab(): React.ReactElement {
   return (
-    <article className="prose lg:prose-md max-w-none lg:max-w-[50vw]">
+    <TutorialArticle>
       In addition to general proof tactics, The goal is to build a library of lemmas that can be used for more specialized applications. Here is one example, using an arithmetic mean geometric mean lemma:
 
       <p>
@@ -460,27 +528,45 @@ function LemmasTab(): React.ReactElement {
         Goal solved!
         <br />
         Proof complete!</code></pre>
-    </article>
+    </TutorialArticle>
   )
 }
 
 function CreatingProblemsTab(): React.ReactElement {
   return (
-    <article className="prose lg:prose-md max-w-none lg:max-w-[50vw]">
+    <TutorialArticle>
       The previous demonstrations of the Proof Assistant used some "canned" examples which placed one directly in Tactic Mode with some pre-made hypotheses and goal. To make one's own problem to solve, one begins with the ProofAssistant constructor:
-      <pre><code>&gt;&gt;&gt; from estimates.main import *
-        <br />
-        &gt;&gt;&gt; p = ProofAssistant()
-        <br />
-        Proof Assistant is in assumption mode.  Current proof state:
-        <br />
-        |- True</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> from estimates.main import *',
+          '>>> p = ProofAssistant()',
+          'Proof Assistant is in assumption mode.  Current proof state:',
+          '|- True'
+        ]}
+        problem={{
+          variables: [],
+          assumptions: [],
+          goal: {
+            input: 'True',
+            valid: true
+          }
+        }}
+      />
       <p>
         This places the proof assistant in Assumption Mode. Now one can add variables and assumptions. For instance, to introduce a positive real variable x, one can use the var() method to write
       </p>
-      <pre><code>&gt;&gt;&gt; x = p.var("real", "x")
-        <br />
-        x: real</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> x = p.var("real", "x")',
+          'x: real'
+        ]}
+        variables={[
+          {
+            name: 'x',
+            type: 'real'
+          }
+        ]}
+      />
       <p>
         This creates a sympy Python variable x, which is real and can be manipulated symbolically using the full range of sympy methods:
       </p>
@@ -511,21 +597,28 @@ function CreatingProblemsTab(): React.ReactElement {
       <p>
         One can also use vars() to introduce multiple variables at once:
       </p>
-      <pre><code>&gt;&gt;&gt; y,z = p.vars("pos_int", "y", "z")   # "pos_int" means "positive integer"
-        <br />
-        &gt;&gt;&gt; y.is_positive
-        <br />
-        True
-        <br />
-        &gt;&gt;&gt; (y+z).is_positive
-        <br />
-        True
-        <br />
-        &gt;&gt;&gt; (x+y).is_positive
-        <br />
-        &gt;&gt;&gt; (x+y).is_real
-        <br />
-        True</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> y,z = p.vars("pos_int", "y", "z")   # "pos_int" means "positive integer"',
+          '>>> y.is_positive',
+          'True',
+          '>>> (y+z).is_positive',
+          'True',
+          '>>> (x+y).is_positive',
+          '>>> (x+y).is_real',
+          'True'
+        ]}
+        variables={[
+          {
+            name: 'y',
+            type: 'pos_int'
+          },
+          {
+            name: 'z',
+            type: 'pos_int'
+          }
+        ]}
+      />
       <p>
         (Here, (x+y).is_positive returned None, reflecting the fact that the hypotheses do not allow one to easily assert that x+y is positive.)
       </p>
@@ -533,50 +626,52 @@ function CreatingProblemsTab(): React.ReactElement {
       <p>
         One can then add additional hypotheses using the assume() command:
       </p>
-      <pre><code>&gt;&gt;&gt; p.assume(x+y+z &lt;= 3, "h")
-        <br />
-        &gt;&gt;&gt; p.assume((x&gt;=y) &amp; (y&gt;=z), "h2")
-        <br />
-        &gt;&gt;&gt; print(p)
-        <br />
-        Proof Assistant is in assumption mode.  Current hypotheses:
-        <br />
-        x: real
-        <br />
-        y: pos_int
-        <br />
-        z: pos_int
-        <br />
-        h: x + y + z &lt;= 3
-        <br />
-        h2: (x &gt;= y) &amp; (y &gt;= z)</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.assume(x+y+z &lt;= 3, "h")',
+          '>>> p.assume((x>y) & (y>=z), "h2")',
+          '>>> print(p)',
+        ]}
+        assumptions={[
+          {
+            input: 'x+y+z >= 3',
+            valid: true,
+            name: 'h1'
+          },
+          {
+            input: '(x>=y) & (y>=z)',
+            valid: true,
+            name: 'h2'
+          }
+        ]}
+      />
 
       <p>
         Now, one can start a goal with the begin_proof() command:
       </p>
-      <pre><code>&gt;&gt;&gt; p.begin_proof(Eq(z,1))
-        <br />
-        Starting proof.  Current proof state:
-        <br />
-        x: real
-        <br />
-        y: pos_int
-        <br />
-        z: pos_int
-        <br />
-        h: x + y + z &lt; 3
-        <br />
-        h2: (x &gt;= y) &amp; (y &gt;= z)
-        <br />
-        |- Eq(z, 1)</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.begin_proof(Eq(z,1))',
+          'Starting proof.  Current proof state:',
+          'x: real',
+          'y: pos_int',
+          'z: pos_int',
+          'h: x + y + z < 3',
+          'h2: (x >= y) & (y >= z)',
+          '|- Eq(z, 1)'
+        ]}
+        goal={{
+          input: 'Eq(z, 1)',
+          valid: true
+        }}
+      />
       <p>
         (Here we are using sympy's symbolic equality relation Eq, because Python has reserved the = and == operators for other purposes.) Now one is in Tactic Mode and can use tactics as before.
       </p>
       <p>
         For a full list of navigation commands that one can perform in either Assumption Mode or Tactic Mode, see the <a href="https://github.com/teorth/estimates/blob/main/docs/navigation.md" target="_blank" rel="noopener noreferrer">navigation documentation</a>.
       </p>
-    </article>
-
+    </TutorialArticle>
   )
 }
 
