@@ -1,19 +1,19 @@
 import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, Edge, Node, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Goal, Relation, Variable, VariableType } from './proofGraph';
+import { useEffect, useMemo, useRef } from 'react';
 import AssumptionMode from './AssumptionMode';
-import BaseNode from './BaseNode';
-import GoalNode from './GoalNode';
-import TacticNode from './TacticNode';
+import BaseNode from './Nodes/BaseNode';
+import GoalNode from './Nodes/GoalNode';
+import TacticNode from './Nodes/TacticNode';
 import TacticEdge from './TacticEdge';
 import Dagre from 'dagre';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppDispatch } from '../../store';
-import { selectEdges, setEdges, setNodes, onNodesChange, onEdgesChange, removeEdge } from '../../features/proof/proofSlice';
+import { selectEdges, setEdges, setNodes, onNodesChange, onEdgesChange, removeEdge, resetProof, VariableType, selectVariables, selectAssumptions, selectGoal, setVariables, setGoal, setAssumptions } from '../../features/proof/proofSlice';
 import { selectNodes } from '../../features/proof/proofSlice';
 import { useAppSelector } from '../../store';
-import { setCode } from '../../features/pyodide/pyodideSlice';
+import { convertProofGraphToCode } from '../../features/pyodide/pyodideSlice';
+import { Button } from '../Button';
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
@@ -46,29 +46,9 @@ export default function VisualEditor(): React.ReactElement {
   const nodes = useAppSelector(selectNodes);
   const edges = useAppSelector(selectEdges);
   const appDispatch = useAppDispatch();
-
-  const [variables, setVariables] = useState<Variable[]>([
-    {
-      name: 'x_1',
-      type: 'real'
-    },
-    {
-      name: 'x_2',
-      type: 'real'
-    }
-  ]);
-
-  const [relations, setRelations] = useState<Relation[]>([
-    {
-      input: 'x_1 + x_2 > 0',
-      valid: true
-    }
-  ]);
-
-  const [goal, setGoal] = useState<Goal>({
-    input: 'x_1 > 0 \\lor x_2 > 0',
-    valid: true
-  });
+  const variables = useAppSelector(selectVariables);
+  const relations = useAppSelector(selectAssumptions);
+  const goal = useAppSelector(selectGoal);
 
   const addVariable = (type: VariableType, namePrefix: string) => {
     setVariables([...variables, { name: `${namePrefix}_${variables.length + 1}`, type }]);
@@ -144,41 +124,8 @@ export default function VisualEditor(): React.ReactElement {
   }), [edges]);
 
   useEffect(() => {
-    const codeLines = [
-      'from estimates.main import *',
-      'p = ProofAssistant();',
-      'global output',
-      'output = {}',
-      'def store_output(key):\n\ttry:\n\t\toutput[key] = str(p);\n\texcept:\n\t\tpass',
-    ];
-    for (const variable of variables) {
-      codeLines.push(`${variable.name} = p.var("${variable.type}", "${variable.name}");`);
-    }
-    for (const relation of relations) {
-      codeLines.push(`p.assume(${relation.input}, "h");`);
-    }
-
-    let parsedGoal = '';
-    if (goal.input.includes('\\lor')) {
-      const [start, end] = goal.input.split('\\lor');
-      parsedGoal = `(${start}) | (${end})`;
-    } else {
-      parsedGoal = goal.input;
-    }
-    codeLines.push(`p.begin_proof(${parsedGoal});`);
-
-    for (const edge of edges) {
-      const tacticName = (edge.data?.tactic ?? '').toString();
-      if (!['sorry', 'win'].includes(tacticName)) {
-        codeLines.push(`p.use(${tacticName});`);
-        codeLines.push(`store_output("${edge.target}");`);
-      }
-    }
-    codeLines.push(`p.proof()`);
-
-    const code = codeLines.join('\n');
-    appDispatch(setCode(code));
-  }, [edges, nodes]);
+    appDispatch(convertProofGraphToCode({ edges, variables, relations, goal }));
+  }, [edges, variables, relations, goal]);
 
   return (
     <div className='w-full h-full'>
@@ -202,13 +149,24 @@ export default function VisualEditor(): React.ReactElement {
         >
           <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
         </ReactFlow>
+        <div className='flex justify-end'>
+          <Button
+            className='-mt-16 mr-4 bg-white z-20000'
+            onClick={() => {
+              appDispatch(resetProof());
+              fitView();
+            }}
+          >
+            Reset
+          </Button>
+        </div>
       </div>
-      <div className='w-full h-[50%] p-4'>
+      <div className='w-full h-[50%] p-4 overflow-y-auto'>
         <AssumptionMode
           variables={variables}
           setVariables={setVariables}
           relations={relations}
-          setRelations={setRelations}
+          setRelations={setAssumptions}
           goal={goal}
           setGoal={setGoal}
           addVariable={addVariable}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ChevronDoubleDownIcon, ChevronDoubleUpIcon } from '@heroicons/react/16/solid';
 import classNames from 'classnames';
+import TutorialExample from './TutorialExample';
 
 const OVERVIEW_TAB_ID = 'overview';
 const LEMMAS_TAB_ID = 'lemmas';
@@ -52,23 +52,49 @@ function HowItWorksTab(): React.ReactElement {
       <p>
         If one follows the above quick start instructions, one should now see the following:
       </p>
-      <pre><code>&gt;&gt;&gt; from estimates.main import *
-        <br />
-        &gt;&gt;&gt; p = linarith_exercise()
-        <br />
-        Starting proof.  Current proof state:
-        <br />
-        x: pos_real
-        <br />
-        y: pos_real
-        <br />
-        z: pos_real
-        <br />
-        h1: x &lt; 2*y
-        <br />
-        h2: y &lt; 3*z + 1
-        <br />
-        |- x &lt; 7*z + 2</code></pre>
+      <TutorialExample 
+        lines={[
+          '>>> from estimates.main import *',
+          '>>> p = linarith_exercise()',
+          'Starting proof.  Current proof state:',
+          'x: pos_real',
+          'y: pos_real',
+          'z: pos_real',
+          'h1: x &lt; 2*y',
+          'h2: y &lt; 3*z + 1',
+          '|- x &lt; 7*z + 2',
+        ]}
+        problem={{
+          variables: [
+            {
+              name: 'x',
+              type: 'pos_real'
+          },
+          {
+            name: 'y',
+            type: 'pos_real'
+          },
+          {
+            name: 'z',
+            type: 'pos_real'
+            }
+          ],
+          assumptions: [
+            {
+              input: 'x < 2*y',
+            valid: true
+          },
+          {
+            input: 'y < 3*z + 1',
+            valid: true
+            }
+          ],
+          goal: {
+            input: 'x < 7*z + 2',
+            valid: true
+          }
+        }}
+      />
       <p>
         We are now in <strong>Tactic mode</strong>, in which we try to establish a desired goal (the assertion after the <code>|-</code> symbol, which in this case is <code>x &lt; 7*z + 2</code>) from the given hypotheses x, y, z, h1, h2. Hypotheses come in two types:
       </p>
@@ -85,41 +111,34 @@ function HowItWorksTab(): React.ReactElement {
       <p>
         In this particular case, there is a "linear arithmetic" tactic <code>Linarith()</code> (inspired by the Lean tactic linarith) that is specifically designed for the task of obtaining a goal as a linear combination of the hypotheses, and it "one-shots" this particular exercise:
       </p>
-      <pre><code>&gt;&gt;&gt; p.use(Linarith())
-        <br />
-        Proof complete!</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.use(Linarith())',
+          'Proof complete!'
+        ]}
+      />
       <p>
         This may seem suspiciously easy, but one can ask Linarith to give a more detailed explanation:
       </p>
-      <pre><code>&gt;&gt;&gt; p.use(Linarith(verbose=True))
-        <br />
-        Checking feasibility of the following inequalities:
-        <br />
-        1*z &gt; 0
-        <br />
-        1*x + -7*z &gt;= 2
-        <br />
-        1*y + -3*z &lt; 1
-        <br />
-        1*y &gt; 0
-        <br />
-        1*x &gt; 0
-        <br />
-        1*x + -2*y &lt; 0
-        <br />
-        Infeasible by summing the following:
-        <br />
-        1*z &gt; 0 multiplied by 1/4
-        <br />
-        1*x + -7*z &gt;= 2 multiplied by 1/4
-        <br />
-        1*y + -3*z &lt; 1 multiplied by -1/2
-        <br />
-        1*x + -2*y &lt; 0 multiplied by -1/4
-        <br />
-        Goal solved by linear arithmetic!
-        <br />
-        Proof complete!</code></pre>
+      <TutorialExample
+        lines={[
+          '>>> p.use(Linarith(verbose=True))',
+          'Checking feasibility of the following inequalities:',
+          '1*z > 0',
+          '1*x + -7*z >= 2',
+          '1*y + -3*z < 1',
+          '1*y > 0',
+          '1*x > 0',
+          '1*x + -2*y < 0',
+          'Infeasible by summing the following:',
+          '1*z > 0 multiplied by 1/4',
+          '1*x + -7*z >= 2 multiplied by 1/4',
+          '1*y + -3*z < 1 multiplied by -1/2',
+          '1*x + -2*y < 0 multiplied by -1/4',
+          'Goal solved by linear arithmetic!',
+          'Proof complete!',
+        ]}
+      />
       <p>
         This gives more details as to what Linarith actually did:
       </p>

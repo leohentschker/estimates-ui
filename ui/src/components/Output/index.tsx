@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { Dialog, DialogPortal, DialogTitle } from '../Dialog';
 import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
 import OutputErrorBoundary from './OutputErrorBoundary';
-import { loadCustomPyodide, runProof, selectCode, selectError, selectIsJaspiError, selectLoading, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
+import { loadCustomPyodide, runProof, selectCode, selectError, selectIsJaspiError, selectLoading, selectProofError, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useDebounce } from 'use-debounce';
 import TextEditor from '../Editor/TextEditor';
@@ -15,10 +15,11 @@ function Output(): React.ReactElement {
   const pyodideLoaded = useAppSelector(selectPyodideLoaded);
   const isJaspiError = useAppSelector(selectIsJaspiError);
   const serializedResult = useAppSelector(selectSerializedResult);
-  const error = useAppSelector(selectError);
   const stdout = useAppSelector(selectStdout);
   const loading = useAppSelector(selectLoading);
   const code = useAppSelector(selectCode);
+  const error = useAppSelector(selectError);
+  const proofError = useAppSelector(selectProofError);
 
   const [debouncedCode] = useDebounce(code, 200);
 
@@ -97,14 +98,14 @@ function Output(): React.ReactElement {
 
         {/* Return result of the editor, if any */}
         {
-          serializedResult && (
+          (serializedResult || proofError) && (
             <div className="p-4">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Result:</h3>
               <pre className={classNames('bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4  whitespace-pre-wrap break-words', {
-                'border-green-500': !error,
-                'border-red-500': error,
+                'border-green-500': !proofError,
+                'border-red-500': proofError,
               })}>
-                {serializedResult}
+                {serializedResult || proofError}
               </pre>
             </div>
           )

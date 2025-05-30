@@ -1,6 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
-import { Goal } from "./proofGraph";
-import LatexString from "./LatexString";
+import { Goal } from "../proofGraph";
+import LatexString from "../LatexString";
 import { useMemo } from "react";
 
 export default function GoalNode({

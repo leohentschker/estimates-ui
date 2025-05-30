@@ -1,17 +1,18 @@
 import { useMemo, useState } from "react";
-import { Button } from "../Button";
-import { Input } from "../Input";
-import { Popover, PopoverTrigger } from "../Popover";
-import { PopoverContent } from "../Popover";
-import LatexString from "./LatexString";
+import { Button } from "../../Button";
+import { Input } from "../../Input";
+import { Popover, PopoverTrigger } from "../../Popover";
+import { PopoverContent } from "../../Popover";
+import LatexString from "../LatexString";
 import { Edge, Handle, Position } from "@xyflow/react";
-import { Relation, Variable, VariableType } from "./proofGraph";
-import { TYPE_TO_SET } from "./proofGraph";
+import { Relation, Variable, VariableType, TYPE_TO_SET } from "../../../features/proof/proofSlice";
 
 export const AVAILABLE_TACTICS = [
   { name: 'Linear arithmetic', value: 'Linarith()' },
   { name: 'Contrapositive', value: 'Contrapose("h")' },
   { name: 'Split hypothesis', value: 'SplitHyp("h")' },
+  { name: 'Cases', value: 'Cases("h1")' },
+  { name: "Simplify", value: "SimpAll()" },
 ]
 
 export default function BaseNode({

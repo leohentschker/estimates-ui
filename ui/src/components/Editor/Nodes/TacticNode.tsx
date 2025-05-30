@@ -1,12 +1,12 @@
 import { Edge, Handle, Position } from "@xyflow/react";
 import { useState } from "react";
-import LatexString from "./LatexString";
-import { Popover, PopoverContent, PopoverTrigger } from "../Popover";
-import { Button } from "../Button";
-import { Input } from "../Input";
+import LatexString from "../LatexString";
+import { Popover, PopoverContent, PopoverTrigger } from "../../Popover";
+import { Button } from "../../Button";
+import { Input } from "../../Input";
 import { AVAILABLE_TACTICS } from "./BaseNode";
-import { useAppSelector } from "../../store";
-import { selectProofOutput } from "../../features/pyodide/pyodideSlice";
+import { useAppSelector } from "../../../store";
+import { selectProofOutput } from "../../../features/pyodide/pyodideSlice";
 
 export default function TacticNode({ 
   id,

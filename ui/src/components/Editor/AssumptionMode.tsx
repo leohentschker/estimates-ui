@@ -5,10 +5,9 @@ import { SelectValue } from '../Select';
 import { SelectContent, SelectItem, SelectTrigger } from '../Select';
 import { Select } from '../Select';
 import LatexString from './LatexString';
-import { Goal, Relation, Variable, VariableType } from './proofGraph';
+import { Goal, Relation, Variable, VariableType } from '../../features/proof/proofSlice';
 import { TrashIcon } from '@heroicons/react/16/solid';
-import { useAppDispatch } from '../../store';
-import { useAppSelector } from '../../store';
+import { TYPE_TO_SET } from '../../features/proof/proofSlice';
 
 
 export default function AssumptionMode({
@@ -37,7 +36,7 @@ export default function AssumptionMode({
       <div className='font-medium'>
         Declare variables
       </div>
-      <div className='grid grid-cols-5 lg:grid-cols-10 gap-2'>
+      <div className='grid grid-cols-4 lg:grid-cols-8 gap-2'>
         {
           variables.map((variable, index) => (
             <>
@@ -47,7 +46,7 @@ export default function AssumptionMode({
                 placeholder="Write variable name in LaTex"
                 value={variable.name}
                 onChange={(e) => setVariables(variables.map((v, i) => i === index ? { ...v, name: e.target.value } : v))}
-                className='col-span-3'
+                className='col-span-2'
               />
               <Select
                 value={variable.type}
@@ -57,15 +56,19 @@ export default function AssumptionMode({
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="real"><LatexString latex='\mathbb{R}' /></SelectItem>
-                  <SelectItem value="int"><LatexString latex='\mathbb{Z}' /></SelectItem>
-                  <SelectItem value="bool"><LatexString latex='\mathbb{B}' /></SelectItem>
+                  {
+                    Object.entries(TYPE_TO_SET).map(([type, latex]) => (
+                      <SelectItem key={type} value={type}>
+                        <LatexString latex={latex} />
+                      </SelectItem>
+                    ))
+                  }
                 </SelectContent>
               </Select>
               <Button
                 onClick={() => setVariables(variables.filter((_, i) => i !== index))}
                 variant='destructive'
-                disabled={index === 0}
+                disabled={variables.length === 1}
               >
                 <div className='flex items-center gap-1 w-full justify-center'>
                   <TrashIcon className='size-4' />
@@ -120,7 +123,7 @@ export default function AssumptionMode({
       <div className='font-medium'>
         State goal
       </div>
-      <div className='grid grid-cols-3 lg:grid-cols-6 xl:grid-cols-9 w-full items-center gap-1.5'>
+      <div className='grid grid-cols-3 lg:grid-cols-6 w-full items-center gap-1.5'>
         <Input required id="goal"
           placeholder="Use LaTex syntax, x_1, x_2, ..."
           value={goal.input}
