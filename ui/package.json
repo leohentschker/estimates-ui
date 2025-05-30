@@ -46,6 +46,7 @@
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
     "use-debounce": "^10.0.4",
+    "uuid": "^11.1.0",
     "z3-solver": "^4.15.0"
   }
 }
