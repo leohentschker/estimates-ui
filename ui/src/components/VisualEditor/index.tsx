@@ -1,4 +1,4 @@
-import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, Edge, Node, useReactFlow } from '@xyflow/react';
+import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useEffect, useMemo, useRef } from 'react';
 import AssumptionMode from './AssumptionMode';
@@ -7,7 +7,7 @@ import GoalNode from './Nodes/GoalNode';
 import TacticNode from './Nodes/TacticNode';
 import TacticEdge from './TacticEdge';
 import { useAppDispatch } from '../../store';
-import { selectEdges, onNodesChange, onEdgesChange, removeEdge, resetProof, VariableType, selectVariables, selectAssumptions, selectGoal, setVariables, setGoal, setAssumptions, applyTactic } from '../../features/proof/proofSlice';
+import { selectEdges, onNodesChange, onEdgesChange, removeEdge, resetProof, selectVariables, selectAssumptions, selectGoal, setVariables, setGoal, setAssumptions, applyTactic } from '../../features/proof/proofSlice';
 import { selectNodes } from '../../features/proof/proofSlice';
 import { useAppSelector } from '../../store';
 import { convertProofGraphToCode } from '../../features/pyodide/pyodideSlice';
@@ -24,10 +24,6 @@ export default function VisualEditor(): React.ReactElement {
   const variables = useAppSelector(selectVariables);
   const relations = useAppSelector(selectAssumptions);
   const goal = useAppSelector(selectGoal);
-
-  const addVariable = (type: VariableType, namePrefix: string) => {
-    setVariables([...variables, { name: `${namePrefix}_${variables.length + 1}`, type }]);
-  }
 
   const handleApplyTacticToNode = (nodeId: string, tactic: string) => {
     appDispatch(applyTactic({ nodeId, tactic }));
@@ -68,8 +64,8 @@ export default function VisualEditor(): React.ReactElement {
   }, [edges, variables, relations, goal]);
 
   return (
-    <div className='w-full h-full'>
-      <div ref={containerRef} className='w-full h-[50%] border-b border-gray-200'>
+    <div className='hidden md:block w-1/2 h-full flex-1'>
+      <div ref={containerRef} className='h-[50%] border-b border-gray-200'>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -107,7 +103,6 @@ export default function VisualEditor(): React.ReactElement {
           setVariables={setVariables}
           relations={relations}
           goal={goal}
-          setGoal={setGoal}
         />
       </div>
     </div>

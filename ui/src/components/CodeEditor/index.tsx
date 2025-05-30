@@ -3,10 +3,10 @@ import classNames from 'classnames';
 import { Dialog, DialogPortal, DialogTitle } from '../Dialog';
 import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
 import OutputErrorBoundary from './OutputErrorBoundary';
-import { loadCustomPyodide, runProof, selectCode, selectError, selectIsJaspiError, selectLoading, selectProofError, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
+import { loadCustomPyodide, runProof, selectCode, selectIsJaspiError, selectLoading, selectProofError, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useDebounce } from 'use-debounce';
-import TextEditor from '../Editor/TextEditor';
+import TextEditor from './TextEditor';
 
 function Output(): React.ReactElement {
   const appDispatch = useAppDispatch();
@@ -18,7 +18,6 @@ function Output(): React.ReactElement {
   const stdout = useAppSelector(selectStdout);
   const loading = useAppSelector(selectLoading);
   const code = useAppSelector(selectCode);
-  const error = useAppSelector(selectError);
   const proofError = useAppSelector(selectProofError);
 
   const [debouncedCode] = useDebounce(code, 200);
@@ -135,7 +134,8 @@ function Output(): React.ReactElement {
  */
 export default function OutputContainer() {
   return (
-    <div className='lg:flex-2 lg:max-w-1/2 shadow-lg'>
+    <div className='w-full 2xl:w-1/2 lg:max-w-lg shadow-lg'>
+      {/* Pyodide has a tendency to break out of component error handling, so we wrap the component in an error boundary */}
       <OutputErrorBoundary>
         <Output />
       </OutputErrorBoundary>

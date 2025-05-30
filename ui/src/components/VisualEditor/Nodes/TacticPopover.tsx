@@ -19,6 +19,7 @@ export const AVAILABLE_TACTICS: Tactic[] = [
   { name: 'Cases', value: 'Cases', arguments: ['hypotheses'] },
   { name: "Simplify", value: "SimpAll", arguments: [] },
   { name: 'Split goal', value: 'SplitGoal', arguments: [] },
+  { name: 'Log linear arithmetic', value: 'LogLinarith', arguments: [] },
 ]
 
 export default function TacticPopover({
@@ -62,7 +63,7 @@ export default function TacticPopover({
           <LatexString latex={`+`} /> apply tactic
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="bg-white">
+      <PopoverContent className="bg-white z-200000">
         <div className='flex flex-col gap-2'>
 
           {
