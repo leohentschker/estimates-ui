@@ -1,8 +1,8 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { createAction, createAsyncThunk, createListenerMiddleware, createSlice, isAnyOf } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../store'
 import { loadAndRunPyodide } from './loader';
-import { fixLayout, handleProofComplete, handleProofIncomplete } from '../proof/proofSlice';
+import { addAssumption, addVariables, applyTactic, fixLayout, handleProofComplete, handleProofIncomplete, loadProblem, setAssumptions, setEdges, setGoal, setNodes, setVariables } from '../proof/proofSlice';
 import { Edge } from '@xyflow/react';
 import { Variable, Relation, Goal } from '../proof/proofSlice';
 
@@ -98,8 +98,11 @@ export const runProof = createAsyncThunk('pyodide/runProof', async (code: string
 });
 
 export const convertProofGraphToCode = createAsyncThunk('pyodide/convertProofGraphToCode', async (
-  { edges, variables, relations, goal }: { edges: Edge[], variables: Variable[], relations: Relation[], goal: Goal }
+  _,
+  { getState }
 ) => {
+  const state = getState() as RootState;
+  const { edges, variables, assumptions, goal } = state.proof;
   const codeLines = [
     'from estimates.main import *',
     'from sympy import *',
@@ -111,11 +114,11 @@ export const convertProofGraphToCode = createAsyncThunk('pyodide/convertProofGra
     }
     codeLines.push(`${variable.name} = p.var("${variable.type}", "${variable.name}");`);
   }
-  for (const relation of relations) {
-    if (!relation.input) {
+  for (const assumption of assumptions) {
+    if (!assumption.input) {
       continue;
     }
-    codeLines.push(`p.assume(${relation.input}, "${relation.name}");`);
+    codeLines.push(`p.assume(${assumption.input}, "${assumption.name}");`);
   }
 
   if (goal.input) {
@@ -214,6 +217,34 @@ export const pyodideSlice = createSlice({
       state.proofOutput = output || null;
       state.proofComplete = proofComplete || false;
     });
+  },
+});
+
+export const initializeCodegen = createAction('pyodide/initializeCodegen');
+
+export const codegenListenerMiddleware = createListenerMiddleware();
+codegenListenerMiddleware.startListening({
+  matcher: isAnyOf(
+    setNodes,
+    setEdges,
+    setVariables,
+    setAssumptions,
+    addAssumption,
+    addVariables,
+    applyTactic,
+    setGoal,
+    addVariables,
+    initializeCodegen,
+    loadProblem
+  ),
+  effect: async (_, listenerApi) => {
+    listenerApi.cancelActiveListeners()
+    const state = listenerApi.getState() as RootState;
+    const { executionMode } = state.ui;
+    console.log('executionMode', executionMode);
+    if (executionMode === 'auto') {
+      await listenerApi.dispatch(convertProofGraphToCode());
+    }
   },
 });
 

@@ -1,28 +1,75 @@
 import '@xyflow/react/dist/style.css';
 import { Input } from '../Input';
 import { Button } from '../Button';
-import { SelectValue } from '../Select';
-import { SelectContent, SelectItem, SelectTrigger } from '../Select';
-import { Select } from '../Select';
 import LatexString from './LatexString';
-import { addVariables, Goal, Relation, setAssumptions, setGoal, Variable, VariableType } from '../../features/proof/proofSlice';
-import { TrashIcon } from '@heroicons/react/16/solid';
+import { addAssumption, addVariables, setAssumptions, setGoal, setVariables, VariableType } from '../../features/proof/proofSlice';
 import { TYPE_TO_SET } from '../../features/proof/proofSlice';
-import { useAppDispatch } from '../../store';
-import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { useEffect, useRef, useState } from 'react';
+import { TypographyH3 } from '../Typography';
+import { ChevronDown, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import classNames from 'classnames';
+import { Card } from '../Card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../Select';
 
-export default function AssumptionMode({
-  variables,
-  setVariables,
-  relations,
-  goal,
-}: {
-  variables: Variable[];
-  setVariables: (variables: Variable[]) => void;
-  relations: Relation[];
-  goal: Goal;
-}) {
+const logicalSymbols = [
+  { symbol: " ∧ ", code: "And", description: "Logical AND" },
+  { symbol: " ∨ ", code: "Or", description: "Logical OR" },
+  { symbol: " ¬ ", code: "Not", description: "Logical NOT" },
+  { symbol: " ⟹ ", code: "Implies", description: "Implies" },
+  { symbol: " ≡ ", code: "Eq", description: "Equivalent" },
+  { symbol: " = ", code: "Eq", description: "Equals" },
+  { symbol: " ≠ ", code: "NotEq", description: "Not equal" },
+  { symbol: " < ", code: "Lt", description: "Less than" },
+  { symbol: " > ", code: "Gt", description: "Greater than" },
+  { symbol: " ≤ ", code: "Leq", description: "Less than or equal" },
+  { symbol: " ≥ ", code: "Geq", description: "Greater than or equal" },
+  { symbol: " ∀ ", code: "ForAll", description: "For all" },
+  { symbol: " ∃ ", code: "Exists", description: "There exists" },
+]
+
+export default function AssumptionMode() {
   const appDispatch = useAppDispatch();
+  const variables = useAppSelector(state => state.proof.variables);
+  const relations = useAppSelector(state => state.proof.assumptions);
+  const goal = useAppSelector(state => state.proof.goal);
+
+  const [showVariableForm, setShowVariableForm] = useState(false);
+  const [showHypothesisForm, setShowHypothesisForm] = useState(false);
+  const [goalFieldFocused, setGoalFieldFocused] = useState(false);
+
+  const [newHypothesis, setNewHypothesis] = useState({
+    expression: '',
+    label: ''
+  });
+  const [newVariable, setNewVariable] = useState({
+    name: '',
+    type: 'real'
+  });
+
+  const goalInputRef = useRef<HTMLInputElement>(null);
+
+  const insertSymbolAtCursor = (symbol: string) => {
+    const input = goalInputRef.current
+    if (!input) {
+      console.log('No input')
+      return;
+    }
+
+    const start = input.selectionStart || 0
+    const end = input.selectionEnd || 0
+    const newGoal = goal.input.slice(0, start) + symbol + goal.input.slice(end)
+    appDispatch(setGoal({ input: newGoal, valid: false }))
+
+    // Set cursor position after the inserted symbol
+    setTimeout(() => {
+      const newCursorPos = start + symbol.length
+      input.setSelectionRange(newCursorPos, newCursorPos)
+      input.focus()
+    }, 0)
+  }
+
   useEffect(() => {
     if (variables.length === 0) {
       appDispatch(addVariables([{ name: '', type: 'real' }]));
@@ -30,141 +77,229 @@ export default function AssumptionMode({
   }, [variables]);
 
   return (
-    <div className='flex flex-col gap-2 h-full'>
-      <div className='font-bold'>
-        Assumptions
-      </div>
-      <div className='font-medium'>
-        Declare variables
-      </div>
-      <div className='grid grid-cols-4 lg:grid-cols-8 gap-2'>
-        {
-          variables.map((variable, index) => (
-            <>
-              <Input
-                required
-                id="variables"
-                placeholder="x_1, x_2, ..."
-                value={variable.name}
-                onChange={(e) => setVariables(variables.map((v, i) => i === index ? { ...v, name: e.target.value } : v))}
-                className='col-span-2'
-              />
-              <Select
-                value={variable.type}
-                onValueChange={(value) => setVariables(variables.map((v, i) => i === index ? { ...v, type: value as VariableType } : v))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {
-                    Object.entries(TYPE_TO_SET).map(([type, latex]) => (
-                      <SelectItem key={type} value={type}>
-                        <LatexString latex={latex} />
-                      </SelectItem>
-                    ))
-                  }
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={() => setVariables(variables.filter((_, i) => i !== index))}
-                variant='destructive'
-                disabled={variables.length === 1}
-              >
-                <div className='flex items-center gap-1 w-full justify-center'>
-                  <TrashIcon className='size-4' />
-                </div>
-              </Button>
-            </>
-          ))
-        }
-      </div>
-      <div className='flex gap-2 w-full overflow-x-auto'>
-        <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'real' }]))} size='xs' variant='outline'>
-          <LatexString latex='x_1' /> add real
-        </Button>
-        <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'int' }]))} size='xs' variant='outline'>
-          <LatexString latex='z_1' /> add integer
-        </Button>
-        <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'bool' }]))} size='xs' variant='outline'>
-            <LatexString latex='b_1' /> add bool
+    <div className='flex flex-col gap-6 h-full max-w-3xl mx-auto px-12 py-12 w-full'>
+      <div>
+        <div className='flex items-center justify-between mb-3'>
+          <TypographyH3>
+            Variables
+          </TypographyH3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowVariableForm(!showVariableForm)}
+            className="h-8"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Variable
+            <ChevronDown
+              className={`h-4 w-4 ml-1 transition-transform ${showVariableForm ? "rotate-180" : ""}`}
+            />
           </Button>
-        <div className='hidden 2xl:flex gap-2'>
-          <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'pos_int' }]))} size='xs' variant='outline'>
-            <LatexString latex='p_1' /> add positive integer
-          </Button>
-          <Button onClick={() => appDispatch(addVariables([{ name: '', type: 'pos_real' }]))} size='xs' variant='outline'>
-            <LatexString latex='r_1' /> add positive real
-        </Button>
         </div>
-      </div>
-      <div className='font-medium'>
-        Define hypotheses
-      </div>
-      <div className="grid grid-cols-4 lg:grid-cols-8 w-full items-center gap-1.5">
-        {
-          relations.map((relation, index) => (
-            <>
-              <Input required id="assumptions"
-                placeholder="Use LaTex syntax, x_1, x_2, ..."
-                value={relation.input}
-                onChange={(e) => appDispatch(setAssumptions(
-                  relations.map((r, i) => i === index ? { ...r, input: e.target.value, validated: false } : r)
-                ))}
-                className='col-span-2'
-              />
-              <Input required id="assumptions-name"
-                placeholder="h_1, h_2, ..."
-                value={relation.name}
-                onChange={(e) => appDispatch(setAssumptions(
-                  relations.map((r, i) => i === index ? { ...r, name: e.target.value } : r)
-                ))}
-              />
+        <div className="space-y-2 mb-3">
+          {variables.map((variable) => (
+            <div key={variable.name} className="flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-200">
+              <span className="font-mono text-sm flex-1">
+                {variable.name}: <LatexString latex={TYPE_TO_SET[variable.type]} />
+              </span>
               <Button
-                onClick={() => appDispatch(setAssumptions(relations.filter((_, i) => i !== index)))}
-                variant='destructive'
-                disabled={relations.length === 1}
+                variant="destructive"
+                size="sm"
+                onClick={() => appDispatch(setVariables(variables.filter((v) => v.name !== variable.name)))}
               >
-                <div className='flex items-center gap-1 w-full justify-center'>
-                  <TrashIcon className='size-4' />
-                </div>
+                <X className="h-3 w-3" />
               </Button>
-            </>
-          ))
+            </div>
+          ))}
+        </div>
+        {
+          showVariableForm && (
+            <Card className="p-4">
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Expression</label>
+                  <Input
+                    placeholder="e.g., x, y, z"
+                    value={newVariable.name}
+                    onChange={(e) => setNewVariable({ ...newVariable, name: e.target.value })}
+                    className="h-8"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Type</label>
+                  <Select
+                    value={newVariable.type}
+                    onValueChange={(value) => setNewVariable({ ...newVariable, type: value })}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="real">Real (ℝ)</SelectItem>
+                      <SelectItem value="integer">Integer (ℤ)</SelectItem>
+                      <SelectItem value="pos_real">Positive Real (ℝ⁺)</SelectItem>
+                      <SelectItem value="pos_integer">Positive Integer (ℤ⁺)</SelectItem>
+                      <SelectItem value="boolean">Boolean</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      appDispatch(addVariables([{
+                        name: newVariable.name,
+                        type: newVariable.type as VariableType
+                      }]))
+                      setNewVariable({ name: '', type: 'real' })
+                      setShowVariableForm(false)
+                    }}
+                    disabled={!newVariable.name.trim()}
+                  >
+                    Add Variable
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowVariableForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )
         }
       </div>
-      <div className='flex gap-2'>
-        <Button onClick={() => appDispatch(setAssumptions([...relations, { input: '', valid: false, name: '' }]))} size='sm' variant='outline'>
-          <LatexString latex='+' /> add relation
-        </Button>
+      <div>
+        <div className='flex items-center justify-between mb-3'>
+          <TypographyH3>
+            Hypotheses
+          </TypographyH3>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8"
+            onClick={() => setShowHypothesisForm(!showHypothesisForm)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Hypothesis
+            <ChevronDown
+              className={classNames("h-4 w-4 ml-1 transition-transform", showHypothesisForm && "rotate-180")}
+            />
+          </Button>
+        </div>
+        <div className="space-y-2 mb-3">
+          {relations.map((relation, index) => (
+            <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-200">
+              <span className="font-mono text-sm flex-1">
+                {relation.name}: {relation.input}
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => appDispatch(setAssumptions(relations.filter((r) => r.name !== relation.name)))}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        {
+          showHypothesisForm && (
+            <Card className="p-4">
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Expression</label>
+                  <Input
+                    placeholder="e.g., x + y > 0"
+                    value={newHypothesis.expression}
+                    onChange={(e) => setNewHypothesis({ ...newHypothesis, expression: e.target.value })}
+                    className="h-8"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Label</label>
+                  <Input
+                    placeholder="e.g., h1, assumption1"
+                    value={newHypothesis.label}
+                    onChange={(e) => setNewHypothesis({ ...newHypothesis, label: e.target.value })}
+                    className="h-8"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      appDispatch(addAssumption({
+                        input: newHypothesis.expression,
+                        name: newHypothesis.label,
+                        valid: false
+                      }))
+                      setNewHypothesis({ expression: '', label: '' })
+                      setShowHypothesisForm(false)
+                    }}
+                    disabled={!newHypothesis.expression.trim() || !newHypothesis.label.trim()}
+                  >
+                    Add Hypothesis
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowHypothesisForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )
+        }
       </div>
-      <div className='font-medium'>
-        State goal
-      </div>
-      <div className='grid grid-cols-3 lg:grid-cols-6 w-full items-center gap-1.5'>
-        <Input required id="goal"
-          placeholder="Use LaTex syntax, x_1, x_2, ..."
-          value={goal.input}
-          onChange={(e) => appDispatch(setGoal({ ...goal, input: e.target.value }))}
-          className='col-span-3 lg:col-span-6 xl:col-span-3'
-        />
-      </div>
-      <div className='flex gap-2'>
-        <Button onClick={() => appDispatch(setGoal({ ...goal, input: 'Eq(x_1, x_2)' }))} size='sm' variant='outline'>
-          <LatexString latex='=' /> add equality
-        </Button>
-        <Button onClick={() => appDispatch(setGoal({ ...goal, input: `Not(${goal.input})` }))} size='sm' variant='outline'>
-          <LatexString latex='\neg' /> negate
-        </Button>
-      <Button onClick={() => appDispatch(setGoal({ ...goal, input: `And(${goal.input}, ${goal.input})` }))} size='sm' variant='outline'>
-        <LatexString latex='\land' /> and
-      </Button>
-      <Button onClick={() => appDispatch(setGoal({ ...goal, input: `Or(${goal.input}, ${goal.input})` }))} size='sm' variant='outline'>
-        <LatexString latex='\lor' /> or
-      </Button>
-      <Button onClick={() => appDispatch(setGoal({ ...goal, input: `Implies(${goal.input}, ${goal.input})` }))} size='sm' variant='outline'>
-        <LatexString latex='\implies' /> implies
-      </Button>
+      <div>
+        <div className='flex items-center justify-between mb-3'>
+          <TypographyH3>
+            Goal
+          </TypographyH3>
+        </div>
+        <div className='grid grid-cols-3 w-full items-center gap-1.5 relative'>
+          <Input required id="goal"
+            placeholder="x_1, x_2, ..."
+            value={goal.input}
+            onChange={(e) => appDispatch(setGoal({ ...goal, input: e.target.value }))}
+            className='col-span-3 lg:col-span-6 xl:col-span-3'
+            onFocus={() => setGoalFieldFocused(true)}
+            onBlur={() => setGoalFieldFocused(false)}
+            ref={goalInputRef}
+          />
+          {goalFieldFocused && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-10">
+              <div className="text-xs text-gray-500 mb-2 px-1">Insert symbols:</div>
+              <div className="flex flex-wrap gap-1">
+                {logicalSymbols.map((item) => (
+                  <Button
+                    key={item.symbol}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-sm hover:bg-gray-50 hover:text-gray-700"
+                    onMouseDown={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      insertSymbolAtCursor(item.code)
+                      setGoalFieldFocused(false)
+                    }}
+                    title={item.description}
+                  >
+                    {item.code.trim()}
+                  </Button>
+                ))}
+              </div>
+              <div className="text-xs text-gray-400 mt-2 px-1">
+                Click a symbol to insert it at your cursor position
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

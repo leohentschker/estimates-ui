@@ -78,7 +78,7 @@ const initialState: ProofState = {
     },
     {
       id: 'goal-node',
-      position: { x: 0, y: 300 },
+      position: { x: 0, y: 500 },
       data: {
       },
       type: 'goal',
@@ -137,6 +137,9 @@ export const proofSlice = createSlice({
     },
     setAssumptions: (state, action: PayloadAction<Relation[]>) => {
       state.assumptions = action.payload;
+    },
+    addAssumption: (state, action: PayloadAction<Relation>) => {
+      state.assumptions = [...state.assumptions, action.payload];
     },
     setGoal: (state, action: PayloadAction<Goal>) => {
       state.goal = action.payload;
@@ -296,6 +299,7 @@ export const {
   handleProofComplete,
   handleProofIncomplete,
   resetProof,
+  addAssumption,
   loadProblem,
   setVariables,
   setAssumptions,

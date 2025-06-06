@@ -3,6 +3,7 @@ import { Goal, loadProblem, Variable, Relation, applyTactic, selectNodes, addVar
 import { Button } from "../Button";
 import { selectProofComplete } from "../../features/pyodide/pyodideSlice";
 import { useMemo } from "react";
+import { setMode } from "../../features/ui/uiSlice";
 
 export default function TutorialExample({
   lines,
@@ -60,7 +61,10 @@ export default function TutorialExample({
         tactic && !problem && (
           <Button
             className="absolute top-2 right-2 text-sm text-gray-800"
-            onClick={() => appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }))}
+            onClick={() => {
+              appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }));
+              appDispatch(setMode('tactics'));
+            }}
             disabled={proofSolved}
           >
             Apply tactic

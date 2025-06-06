@@ -3,8 +3,12 @@ import CodeEditor from './CodeEditor';
 import VisualEditor from './VisualEditor';
 import TutorialContainer from './Tutorial';
 import useOnce from './hooks';
-import { useAppDispatch } from '../store';
+import { useAppDispatch, useAppSelector } from '../store';
 import { loadCustomPyodide } from '../features/pyodide/pyodideSlice';
+import TopBar from './TopBar';
+import AssumptionMode from './VisualEditor/AssumptionMode';
+import { selectShowTutorial, selectShowCode, selectMode } from '../features/ui/uiSlice';
+import ModeSwitcher from './ModeSwitcher';
 
 export default function Estimates(): React.ReactElement {
   // Load pyodide on app startup
@@ -13,16 +17,30 @@ export default function Estimates(): React.ReactElement {
     appDispatch(loadCustomPyodide());
   }, []);
 
-  return (
-    <div className="h-screen flex w-full">
+  const showTutorial = useAppSelector(selectShowTutorial);
+  const showCode = useAppSelector(selectShowCode);
+  const mode = useAppSelector(selectMode);
 
-      {/* Shown on desktop only, contains tutorial on how to use Estimates */}
-      <TutorialContainer />
-      <div className='h-screen flex w-full'>
-        {/* Visual editor for the proof graph */}
-        <VisualEditor />
+  return (
+    <div className="h-screen flex flex-col w-full">
+      {/* Top bar for the proof */}
+      <TopBar />
+      <div className='flex-1 flex h-full'>
+        {/* Shown on desktop only, contains tutorial on how to use Estimates */}
+        {showTutorial && <TutorialContainer />}
+
+        <div className='flex flex-col w-full  overflow-y-auto'>
+          <ModeSwitcher />
+
+          {/* Assumption mode for the proof graph */}
+          {mode === 'assumptions' && <AssumptionMode />}
+
+          {/* Visual editor for the proof graph */}
+          {mode === 'tactics' && <VisualEditor />}
+        </div>
+
         {/* Code editor and outputs */}
-        <CodeEditor />
+        <CodeEditor hidden={!showCode} />
       </div>
     </div>
   );

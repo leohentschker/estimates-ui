@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import classNames from 'classnames';
 import TutorialExample from './TutorialExample';
 import LatexString from '../VisualEditor/LatexString';
+import { TypographyH2 } from '../Typography';
+import { Button } from '../Button';
+import { X } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { setShowTutorial } from '../../features/ui/uiSlice';
 
 const OVERVIEW_TAB_ID = 'overview';
 const LEMMAS_TAB_ID = 'lemmas';
@@ -850,32 +855,20 @@ function OrdersOfMagnitudeTab(): React.ReactElement {
   )
 }
 
-export const URL_PARAM_TUTORIAL_TAB = 'tutorial_tab';
-const getInitialTab = () => {
-  const url = new URL(window.location.href);
-  const tutorialParam = url.searchParams.get(URL_PARAM_TUTORIAL_TAB);
-  if (tutorialParam === 'overview') {
-    return HOW_IT_WORKS_TAB_ID;
-  } else if (tutorialParam === 'how-it-works') {
-    return HOW_IT_WORKS_TAB_ID;
-  } else if (tutorialParam === 'creating-problems') {
-    return CREATING_PROBLEMS_TAB_ID;
-  } else if (tutorialParam === 'lemmas') {
-    return LEMMAS_TAB_ID;
-  }
-  return HOW_IT_WORKS_TAB_ID;
-}
-
 export default function Tutorial(): React.ReactElement {
-  const [activeTab, setActiveTab] = useState(getInitialTab());
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set(URL_PARAM_TUTORIAL_TAB, activeTab);
-    window.history.replaceState({}, '', url.toString());
-  }, [activeTab]);
+  const [activeTab, setActiveTab] = useState(HOW_IT_WORKS_TAB_ID);
+  const dispatch = useDispatch();
 
   return (
-    <div className='hidden 2xl:block w-3xl border-r border-gray-200 h-full overflow-y-auto flex flex-col'>
+    <div
+      className='w-2xl min-w-md border-r border-gray-200 h-full flex flex-col overflow-y-auto'
+    >
+      <div className='bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between'>
+        <TypographyH2>Tutorials</TypographyH2>
+        <Button variant="ghost" size="sm" onClick={() => dispatch(setShowTutorial(false))}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
       <div className='sticky top-0 bg-white z-10 border-b border-gray-200'>
         <div className='flex items-center gap-2 p-4'>
           {
@@ -895,7 +888,7 @@ export default function Tutorial(): React.ReactElement {
           }
         </div>
       </div>
-      <div className='p-4 overflow-y-auto flex-1'>
+      <div className='p-4'>
         {
           activeTab === OVERVIEW_TAB_ID && (
             <OverviewTab />

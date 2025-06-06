@@ -3,10 +3,14 @@ import classNames from 'classnames';
 import { Dialog, DialogPortal, DialogTitle } from '../Dialog';
 import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
 import OutputErrorBoundary from './OutputErrorBoundary';
-import { loadCustomPyodide, runProof, selectCode, selectIsJaspiError, selectLoading, selectProofError, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
+import { runProof, selectCode, selectIsJaspiError, selectLoading, selectProofError, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useDebounce } from 'use-debounce';
 import TextEditor from './TextEditor';
+import { Button } from '../Button';
+import { TypographyH2, TypographyH4 } from '../Typography';
+import { X } from 'lucide-react';
+import { setShowCode } from '../../features/ui/uiSlice';
 
 function Output(): React.ReactElement {
   const appDispatch = useAppDispatch();
@@ -60,12 +64,24 @@ function Output(): React.ReactElement {
         </DialogPortal>
       </Dialog>
 
-      <div className='flex-1'>
-        <TextEditor />
+      <div className='bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between'>
+        <TypographyH2>Code and Outputs</TypographyH2>
+        <Button variant="ghost" size="sm" onClick={() => appDispatch(setShowCode(false))}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="flex-2 flex flex-col">
+        {/* Generated Code Section - Much Taller */}
+        <div className="flex-1 p-4 flex flex-col gap-2">
+          <TypographyH4>Generated Code:</TypographyH4>
+          <div className='bg-gray-50 border border-gray-200 rounded h-full'>
+            <TextEditor />
+          </div>
+        </div>
       </div>
 
       {/* Loading indicator when pyodide is not loaded */}
-      <div className="flex-1 flex flex-col border-t border-gray-200 overflow-y-auto">
+      <div className="flex-3 flex flex-col overflow-y-auto">
         {
           !pyodideLoaded && (
             <div className='flex items-center justify-center py-4'>
@@ -86,8 +102,8 @@ function Output(): React.ReactElement {
         {/* Console output, things from "print" in Python */}
         {
           stdout.length > 0 && (
-            <div className='p-4'>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Console Output:</h3>
+            <div className='p-4 flex flex-col gap-2'>
+              <TypographyH4>Console Output:</TypographyH4>
               <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-blue-500 whitespace-pre-wrap break-words">
                 {stdout.join('\n')}
               </pre>
@@ -98,28 +114,14 @@ function Output(): React.ReactElement {
         {/* Return result of the editor, if any */}
         {
           (serializedResult || proofError) && (
-            <div className="p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Result:</h3>
+            <div className="p-4 flex flex-col gap-2">
+              <TypographyH4>Result:</TypographyH4>
               <pre className={classNames('bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4  whitespace-pre-wrap break-words', {
                 'border-green-500': !proofError,
                 'border-red-500': proofError,
               })}>
                 {serializedResult || proofError}
               </pre>
-            </div>
-          )
-        }
-
-        {/* Button to restart the editor */}
-        <div className='flex-1' />
-        {
-          pyodideLoaded && (
-            <div className='flex justify-end w-full'>
-              <div
-                className='m-5 px-3 py-2 bg-sky-900 text-white rounded-md cursor-pointer hover:bg-sky-800 transition-colors duration-200 w-full text-center w-full lg:w-fit'
-                onClick={() => appDispatch(loadCustomPyodide())}>
-                Restart Editor
-              </div>
             </div>
           )
         }
@@ -132,9 +134,16 @@ function Output(): React.ReactElement {
  * Wrap our component in an error boundary so that we can catch errors that break out of the editor
  * from Pyodide unexpectedly and enable refreshing the editor.
  */
-export default function OutputContainer() {
+export default function OutputContainer({ hidden }: { hidden: boolean }) {
   return (
-    <div className='w-full 2xl:w-1/2 lg:max-w-lg shadow-lg'>
+    <div
+      className={classNames(
+        'w-full lg:max-w-lg min-w-md border-l border-gray-200',
+        {
+          'hidden': hidden
+        }
+      )}
+    >
       {/* Pyodide has a tendency to break out of component error handling, so we wrap the component in an error boundary */}
       <OutputErrorBoundary>
         <Output />
