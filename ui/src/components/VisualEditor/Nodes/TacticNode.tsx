@@ -1,11 +1,7 @@
 import { Edge, Handle, Position } from "@xyflow/react";
-import LatexString from "../LatexString";
-import { useAppSelector } from "../../../store";
-import { selectProofOutput } from "../../../features/pyodide/pyodideSlice";
-import { pythonToLatex } from "../../../features/pyodide/latexToPython";
 import TacticPopover from "./TacticPopover";
 
-const stripEstimatesPrefixes = (result: string) => {
+export const stripEstimatesPrefixes = (result: string) => {
   return result
     .replace(/Proof Assistant is in tactic mode./, '')
     .replace(/Current proof state:/, '')
@@ -25,16 +21,17 @@ export default function TacticNode({
   id,
   edges,
   applyTacticToNode,
-  applyLemmaToNode
+  applyLemmaToNode,
+  data
 }: {
   id: string, edges: Edge[];
   applyTacticToNode: (nodeId: string, tactic: string) => void;
   applyLemmaToNode: (nodeId: string, lemma: string) => void;
+  data: {
+    label: string;
+  }
 }) {
-  const proofOutput = useAppSelector(selectProofOutput);
-
-  const simplifiedResult = stripEstimatesPrefixes(proofOutput?.[id] || '');
-
+  const simplifiedResult = data.label;
   const tactic = edges.find((edge) => edge.source === id);
 
   return (
@@ -43,8 +40,8 @@ export default function TacticNode({
       {
         simplifiedResult ? (
           <div className="tacticnode border border-gray-300 rounded-md p-2 items-center justify-center text-center">
-            <span className="text-xs">
-              <LatexString latex={pythonToLatex(simplifiedResult)} />
+            <span className="text-xs max-w-16">
+              {simplifiedResult}
             </span>
           </div>
         ) : (

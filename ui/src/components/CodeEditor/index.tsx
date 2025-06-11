@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { Dialog, DialogPortal, DialogTitle } from '../Dialog';
 import { DialogContent, DialogDescription, DialogOverlay } from '@radix-ui/react-dialog';
 import OutputErrorBoundary from './OutputErrorBoundary';
-import { runProof, selectCode, selectIsJaspiError, selectLoading, selectProofError, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
+import { runProofCode, selectCode, selectIsJaspiError, selectLoading, selectProofError, selectPyodideLoaded, selectSerializedResult, selectStdout } from '../../features/pyodide/pyodideSlice';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useDebounce } from 'use-debounce';
 import TextEditor from './TextEditor';
@@ -37,7 +37,7 @@ function Output(): React.ReactElement {
       return;
     }
     if (debouncedCode) {
-      appDispatch(runProof(debouncedCode));
+      appDispatch(runProofCode(debouncedCode));
     }
   }, [pyodideLoaded, debouncedCode]);
 
@@ -74,7 +74,7 @@ function Output(): React.ReactElement {
         {/* Generated Code Section - Much Taller */}
         <div className="flex-1 p-4 flex flex-col gap-2">
           <TypographyH4>Generated Code:</TypographyH4>
-          <div className='bg-gray-50 border border-gray-200 rounded h-full'>
+          <div className='bg-gray-50 border border-gray-200 rounded h-full overflow-hidden'>
             <TextEditor />
           </div>
         </div>
@@ -105,7 +105,7 @@ function Output(): React.ReactElement {
             <div className='p-4 flex flex-col gap-2'>
               <TypographyH4>Console Output:</TypographyH4>
               <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto border-l-4 border-blue-500 whitespace-pre-wrap break-words">
-                {stdout.join('\n')}
+                {stdout.map(item => String(item)).join('\n')}
               </pre>
             </div>
           )
@@ -120,7 +120,7 @@ function Output(): React.ReactElement {
                 'border-green-500': !proofError,
                 'border-red-500': proofError,
               })}>
-                {serializedResult || proofError}
+                {serializedResult ? String(serializedResult) : proofError}
               </pre>
             </div>
           )

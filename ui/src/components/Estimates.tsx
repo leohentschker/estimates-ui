@@ -26,10 +26,12 @@ export default function Estimates(): React.ReactElement {
       {/* Top bar for the proof */}
       <TopBar />
       <div className='flex-1 flex h-full'>
-        {/* Shown on desktop only, contains tutorial on how to use Estimates */}
+        {/* Togglable tutorial on how to use Estimates */}
         {showTutorial && <TutorialContainer />}
 
+        {/* Main proof editor */}
         <div className='flex flex-col w-full  overflow-y-auto'>
+          {/* Mode switcher for assumptions and tactics */}
           <ModeSwitcher />
 
           {/* Assumption mode for the proof graph */}

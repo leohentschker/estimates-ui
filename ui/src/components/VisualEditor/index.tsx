@@ -1,4 +1,4 @@
-import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes, useReactFlow } from '@xyflow/react';
+import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useMemo, useRef } from 'react';
 import BaseNode from './Nodes/BaseNode';
@@ -6,15 +6,15 @@ import GoalNode from './Nodes/GoalNode';
 import TacticNode from './Nodes/TacticNode';
 import TacticEdge from './TacticEdge';
 import { useAppDispatch } from '../../store';
-import { selectEdges, onNodesChange, onEdgesChange, removeEdge, resetProof, selectVariables, selectAssumptions, selectGoal, applyTactic } from '../../features/proof/proofSlice';
+import { selectEdges, onNodesChange, onEdgesChange, removeEdge, selectVariables, selectAssumptions, selectGoal, applyTactic, resetProof } from '../../features/proof/proofSlice';
 import { selectNodes } from '../../features/proof/proofSlice';
 import { useAppSelector } from '../../store';
 import { Button } from '../Button';
+import { RecycleIcon } from 'lucide-react';
 
 
 export default function VisualEditor(): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { fitView } = useReactFlow();
 
   const nodes = useAppSelector(selectNodes);
   const edges = useAppSelector(selectEdges);
@@ -84,6 +84,12 @@ export default function VisualEditor(): React.ReactElement {
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
       </ReactFlow>
+      <div className='absolute top-0 right-0 p-4 z-1000'>
+        <Button onClick={() => appDispatch(resetProof())}>
+          <RecycleIcon className='w-4 h-4' />
+          Reset
+        </Button>
+      </div>
     </div>
   )
 }

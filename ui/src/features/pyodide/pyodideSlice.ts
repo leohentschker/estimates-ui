@@ -2,17 +2,24 @@ import { createAction, createAsyncThunk, createListenerMiddleware, createSlice, 
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../store'
 import { loadAndRunPyodide } from './loader';
-import { addAssumption, addVariables, applyTactic, fixLayout, handleProofComplete, handleProofIncomplete, loadProblem, setAssumptions, setEdges, setGoal, setNodes, setVariables } from '../proof/proofSlice';
-import { Edge } from '@xyflow/react';
-import { Variable, Relation, Goal } from '../proof/proofSlice';
+import { addAssumption, addVariables, applyTactic, fixLayout, GOAL_NODE_ID, handleProofComplete, handleProofIncomplete, loadProblem, removeEdge, resetProof, setAssumptions, setEdges, setGoal, setNodes, setVariables } from '../proof/proofSlice';
+import { Edge, Node } from '@xyflow/react';
 
-let customPyodide: { 
-  runPythonAsync: (code: string) => Promise<{ error?: string; result?: string, stdResults?: string[], output?: Record<string, string>; proofComplete?: boolean }>, 
+let customPyodide: {
+  runPythonAsync: (code: string, { serializeToGraph }: { serializeToGraph: boolean }) =>
+    Promise<{ 
+      error?: string; 
+      result?: string, 
+      stdResults?: string[], 
+      output?: any,
+      proofComplete?: boolean,
+    }>,
   stdResults?: string[],
 } | null = null;
-export const loadCustomPyodide = createAsyncThunk('pyodide/loadCustomPyodide', async (_, { dispatch }) => {
-  let stdResults: string[] = [];
 
+let stdResults: string[] = [];
+
+export const loadCustomPyodide = createAsyncThunk('pyodide/loadCustomPyodide', async (_, { dispatch }) => {
   const pyodide = await loadAndRunPyodide({ stdout: line => stdResults.push(line) });
   if (!pyodide) {
     return null;
@@ -22,38 +29,51 @@ export const loadCustomPyodide = createAsyncThunk('pyodide/loadCustomPyodide', a
     runPythonAsync: async (code: string) => {
       stdResults = [];
       let result: any;
+      const codePrefix = code.split('\n').slice(0, -1).join('\n');
+      const codeSuffix = code.split('\n').pop();
       const augmentedCode = `
-from sympy.parsing.latex import parse_latex
-global output
+_id_map = {}
+_counter = 0
+_nodes = []
+_edges = []
 output = {}
-def store_output(key):
-	try:
-		output[key] = str(p);
-	except:
-		pass
-${code}
+def traverse(node):
+    global _counter
+    if node not in _id_map:
+        node_id = f"n{_counter}"
+        _id_map[node] = node_id
+        label = str(node.proof_state).replace("\\n", " | ")
+        _nodes.append(dict(id=node_id, label=label, tactic=str(node.tactic) or "", sorry_free=node.is_sorry_free()))
+        _counter += 1
+    for child in node.children:
+        traverse(child)
+        parent_id = _id_map[node]
+        child_id = _id_map[child]
+        tactic_label = str(node.tactic) or ""
+        _edges.append(dict(source=parent_id, target=child_id, label=tactic_label))
+${codePrefix}
+out = ${codeSuffix}
+traverse(p.proof_tree)
+graph=dict(nodes=_nodes, edges=_edges)
+out
 `.trim();
       try {
         result = await pyodide.runPythonAsync(augmentedCode);
       } catch (error) {
-        console.log('ERROR', error);
         return { error: `${error}` };
       }
-      let output: any;
+      let graph: any;
       try {
-        output = pyodide.globals.get('output');
+        graph = pyodide.globals.get('graph');
       } catch (error) {
-        console.log('ERROR get', error);
         return { error: `${error}` };
       }
       let pyodideOutput: Record<string, string>;
       try {
-        pyodideOutput = output.toJs();
+        pyodideOutput = graph.toJs({ dict_converter: Object.fromEntries });
       } catch (error) {
-        console.log('ERROR toJs', error);
         return { error: `${error}` };
       }
-      const map = Object.fromEntries(Object.entries(pyodideOutput));
       const proofComplete = !!stdResults.find(line => line.includes('Proof complete!'));
       if (proofComplete) {
         dispatch(handleProofComplete());
@@ -64,7 +84,7 @@ ${code}
       return {
         result,
         stdResults,
-        output: map,
+        output: pyodideOutput,
         proofComplete,
       }
     },
@@ -73,12 +93,12 @@ ${code}
   return !!customPyodide;
 });
 
-export const runProof = createAsyncThunk('pyodide/runProof', async (code: string) => {
+export const runProofCode = createAsyncThunk('pyodide/runProof', async (code: string) => {
   if (!customPyodide) {
     return
   }
   try {
-    const result = await customPyodide.runPythonAsync(code);
+    const result = await customPyodide.runPythonAsync(code, { serializeToGraph: false });
     return { result, error: null };
   } catch (error) {
     let errorMessage: string;
@@ -102,7 +122,8 @@ export const convertProofGraphToCode = createAsyncThunk('pyodide/convertProofGra
   { getState }
 ) => {
   const state = getState() as RootState;
-  const { edges, variables, assumptions, goal } = state.proof;
+  const { edges, variables, assumptions, goal, nodes } = state.proof;
+
   const codeLines = [
     'from estimates.main import *',
     'from sympy import *',
@@ -125,21 +146,69 @@ export const convertProofGraphToCode = createAsyncThunk('pyodide/convertProofGra
     codeLines.push(`p.begin_proof(${goal.input});`);
   }
 
-  for (const edge of edges) {
+  const baseNode = nodes.find((n) => !edges.some((e) => e.target === n.id));
+  if (!baseNode) {
+    return codeLines.join('\n');
+  }
+
+  const queuedNodes: Node[] = [baseNode];
+  const visitedNodes = new Set<string>([]);
+  const dfsSortedNodesAndEdges: { edge: Edge }[] = [];
+
+  while (queuedNodes.length > 0) {
+    const currentNode = queuedNodes.shift();
+    if (!currentNode) {
+      break;
+    }
+    if (visitedNodes.has(currentNode.id)) {
+      continue;
+    }
+    visitedNodes.add(currentNode.id);
+
+    const outboundEdges = [...edges].filter((e) => e.source === currentNode.id).reverse();
+
+    for (const edge of outboundEdges) {
+      dfsSortedNodesAndEdges.push({ edge });
+
+      const targetNode = nodes.find((n) => n.id === edge.target);
+      if (!targetNode) {
+        continue;
+      }
+      queuedNodes.unshift(targetNode);
+    }
+  }
+
+  const nGoals = edges.filter((e) => e.target === GOAL_NODE_ID).length;
+
+  const resolutionIds = new Set<string>([]);
+  for (const { edge } of dfsSortedNodesAndEdges) {
+    const edgeResolutionId = (edge.data?.resolutionId ?? '').toString();
+    if (edgeResolutionId && resolutionIds.has(edgeResolutionId)) {
+      continue;
+    }
+    resolutionIds.add(edgeResolutionId);
     const tacticName = (edge.data?.tactic ?? '').toString();
     const isLemma = edge.data?.isLemma ?? false;
-    if (!['sorry', 'win'].includes(tacticName)) {
+    if (tacticName === 'sorry') {
+      if (nGoals > 1) {
+        // TODO: add sorry code
+        codeLines.push(`if p.current_node: p.next_goal();`);
+      } else {
+        // TODO: add sorry code
+      }
+    } else if (tacticName === 'win') {
+      // TODO: add win code
+    } else if (!['sorry', 'win'].includes(tacticName)) {
       if (isLemma) {
         codeLines.push(`p.use_lemma(${tacticName});`);
       } else {
         codeLines.push(`p.use(${tacticName});`);
       }
-      codeLines.push(`store_output("${edge.target}");`);
     }
   }
   codeLines.push(`p.proof()`);
-  const code = codeLines.join('\n');
-  return code;
+
+  return codeLines.join('\n');
 });
 
 interface PyodideState {
@@ -178,7 +247,7 @@ export const pyodideSlice = createSlice({
     builder.addCase(loadCustomPyodide.fulfilled, (state, action) => {
       state.pyodideLoaded = !!action.payload;
     });
-    builder.addCase(runProof.pending, (state) => {
+    builder.addCase(runProofCode.pending, (state) => {
       state.loading = true;
       state.proofOutput = null;
       state.serializedResult = null;
@@ -192,13 +261,14 @@ export const pyodideSlice = createSlice({
       }
       state.code = action.payload;
     });
-    builder.addCase(runProof.fulfilled, (state, action) => {
+    builder.addCase(runProofCode.fulfilled, (state, action) => {
       if (!action.payload) {
         return;
       }
       const { result: pyodideResult, error: pyodideError } = action.payload;
       if (!pyodideResult) {
         state.loading = false;
+        state.error = pyodideError;
         return;
       }
       const { result, stdResults, output, proofComplete, error } = pyodideResult;
@@ -211,8 +281,8 @@ export const pyodideSlice = createSlice({
 
       state.loading = false;
       state.serializedResult = result || null;
-      state.error = pyodideError ? pyodideError : result && result.includes('Error: Traceback') ? result : null;
-      state.isJaspiError = !!result && result.includes('WebAssembly stack switching not supported in this JavaScript runtime');
+      state.error = pyodideError ? pyodideError : result && String(result).includes('Error: Traceback') ? result : null;
+      state.isJaspiError = !!result && String(result).includes('WebAssembly stack switching not supported in this JavaScript runtime');
       state.stdout = stdResults || [];
       state.proofOutput = output || null;
       state.proofComplete = proofComplete || false;
@@ -235,13 +305,14 @@ codegenListenerMiddleware.startListening({
     setGoal,
     addVariables,
     initializeCodegen,
-    loadProblem
+    loadProblem,
+    removeEdge,
+    resetProof,
   ),
   effect: async (_, listenerApi) => {
     listenerApi.cancelActiveListeners()
     const state = listenerApi.getState() as RootState;
     const { executionMode } = state.ui;
-    console.log('executionMode', executionMode);
     if (executionMode === 'auto') {
       await listenerApi.dispatch(convertProofGraphToCode());
     }

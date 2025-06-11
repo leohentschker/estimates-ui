@@ -90,7 +90,7 @@ export default function TacticPopover({
                 <div className="text-sm font-bold">
                   Tactics
                 </div>
-                <div className="max-h-32 overflow-y-auto">
+                <div className="max-h-40 overflow-y-auto">
                   {AVAILABLE_TACTICS.filter(tactic => tactic.name.toLowerCase().includes(tacticSearch.toLowerCase())).map(tactic => (
                     <div
                       key={tactic.value}

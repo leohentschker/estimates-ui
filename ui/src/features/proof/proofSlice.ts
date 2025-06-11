@@ -4,11 +4,11 @@ import type { RootState } from '../../store'
 import { applyEdgeChanges, applyNodeChanges, Edge, EdgeChange, Node, NodeChange } from '@xyflow/react'
 import { v4 as uuidv4 } from 'uuid';
 import Dagre from 'dagre';
-
+import { runProofCode } from '../pyodide/pyodideSlice';
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: options.direction, nodesep: 200, ranksep: 150 });
+  g.setGraph({ rankdir: options.direction, nodesep: 500, ranksep: 150 });
 
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
   nodes.forEach((node) =>
@@ -65,37 +65,10 @@ interface ProofState {
   assumptions: Relation[];
 }
 
+export const GOAL_NODE_ID = 'goal-node';
 const initialState: ProofState = {
-  nodes: [
-    {
-      id: 'base-node',
-      position: { x: 0, y: 0 },
-      data: {
-        selected: true,
-      },
-      type: 'base',
-      deletable: false
-    },
-    {
-      id: 'goal-node',
-      position: { x: 0, y: 500 },
-      data: {
-      },
-      type: 'goal',
-      deletable: false
-    }
-  ],
-  edges: [
-    {
-      id: 'base-node-goal-edge',
-      source: 'base-node',
-      target: 'goal-node',
-      type: 'tactic-edge',
-      data: { tactic: 'sorry' },
-      animated: true,
-      deletable: false
-    }
-  ],
+  nodes: [],
+  edges: [],
   variables: [
     {
       name: 'x_1',
@@ -153,15 +126,25 @@ export const proofSlice = createSlice({
     removeEdge: (state, action: PayloadAction<string>) => {
       const edgeId = action.payload;
       const edgeToRemove = state.edges.find((e) => e.id === edgeId);
-      const target = state.nodes.find((n) => n.id === edgeToRemove?.target);
-      const newEdges = state.edges.filter((e) => e.id !== edgeId);
-      const newNodes = state.nodes.filter((n) => n.id !== target?.id);
       const edgeSource = edgeToRemove?.source;
+      if (!edgeSource) {
+        return;
+      }
+
+      const otherEdgesToRemove = state.edges.filter((e) => edgeToRemove?.data?.resolutionId && e.data?.resolutionId === edgeToRemove?.data?.resolutionId);
+      const edgeIdsToRemove = [...otherEdgesToRemove, edgeToRemove].map((e) => e?.id);
+
+      console.log(edgeIdsToRemove, 'EDGE IDS TO REMOVE');
+
+      const target = state.nodes.find((n) => n.id === edgeToRemove?.target);
+      const newEdges = state.edges.filter((e) => !edgeIdsToRemove.includes(e.id));
+      const newNodes = state.nodes.filter((n) => n.id !== target?.id);
+      console.log('REMOVED', newEdges.length - state.edges.length, 'EDGES');
 
       state.edges = [...newEdges, {
         id: uuidv4(),
-        source: edgeSource!,
-        target: 'goal-node',
+        source: edgeSource,
+        target: GOAL_NODE_ID,
         type: 'tactic-edge',
         data: { tactic: 'sorry' },
         animated: true,
@@ -212,7 +195,7 @@ export const proofSlice = createSlice({
         {
           id: uuidv4(),
           source: nodeBeforeWinningTacticNode.id,
-          target: 'goal-node',
+          target: GOAL_NODE_ID,
           type: 'tactic-edge',
           data: { tactic: edgeIntoWinningTacticNode.data?.tactic },
         }
@@ -221,8 +204,24 @@ export const proofSlice = createSlice({
       state.nodes = state.nodes.filter((node) => node.id !== winningTacticNode?.id);
     },
     resetProof: (state) => {
-      state.nodes = initialState.nodes;
-      state.edges = initialState.edges;
+      const sourceNode = state.nodes.find((node) => !state.edges.some((edge) => edge.target === node.id));
+      if (!sourceNode) {
+        return;
+      }
+      const sinkNode = state.nodes.find((node) => !state.edges.some((edge) => edge.source === node.id));
+      if (!sinkNode) {
+        return;
+      }
+      state.nodes = [sourceNode, sinkNode];
+      state.edges = [
+        {
+          id: uuidv4(),
+          source: sourceNode.id,
+          target: sinkNode.id,
+          type: 'tactic-edge',
+          data: { tactic: 'sorry' },
+        }
+      ];
     },
     loadProblem: (state, action: PayloadAction<{
       variables: Variable[];
@@ -254,11 +253,12 @@ export const proofSlice = createSlice({
 
       const newEdgeId = uuidv4();
       const newEdges = [
-        ...state.edges.filter(edge => edge.data?.tactic !== 'sorry'),
+        // remove edges coming out of node we're applying tactic to
+        ...state.edges.filter(edge => edge.source !== action.payload.nodeId),
         {
           id: newEdgeId,
           source: newNodeId,
-          target: 'goal-node',
+          target: GOAL_NODE_ID,
           type: 'tactic-edge',
           data: {
             tactic: 'sorry'
@@ -273,7 +273,8 @@ export const proofSlice = createSlice({
           type: 'tactic-edge',
           data: {
             tactic: action.payload.tactic,
-            isLemma: action.payload.isLemma
+            isLemma: action.payload.isLemma,
+            resolved: false
           },
           deletable: false
         }
@@ -287,6 +288,103 @@ export const proofSlice = createSlice({
       state.nodes = layoutResult.nodes;
       state.edges = layoutResult.edges;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(runProofCode.fulfilled, (state, action) => {
+      if (!action.payload) {
+        return;
+      }
+      if (!action.payload) {
+        return;
+      }
+      const { result: pyodideResult, error: pyodideError } = action.payload;
+      if (!pyodideResult || pyodideError) {
+        return;
+      }
+      if (pyodideResult.error) {
+        console.error('PYODIDE ERROR', pyodideResult.error);
+        return;
+      }
+      const pyodideNodes = pyodideResult.output.nodes as { id: string, label: string, tactic: string, sorry_free: boolean }[];
+      const pyodideEdges = pyodideResult.output.edges as { id: string, source: string, target: string, label: string }[];
+
+      const flowEdges: Edge[] = [];
+      const flowNodes: Node[] = [];
+      for (const n of pyodideNodes) {
+        flowNodes.push({
+          id: n.id,
+          position: {
+            x: 0,
+            y: 0
+          },
+          deletable: false,
+          type: 'tactic',
+          data: {
+            label: n.label,
+          }
+        });
+        const edgesFromNode = pyodideEdges.filter((e) => e.source === n.id);
+        
+        const existingNodeEdge = state.edges.find((e) => e.source === n.id);
+
+        if (!edgesFromNode.length) {
+          if (n.sorry_free) {
+            flowEdges.push({
+              id: uuidv4(),
+              source: n.id,
+              target: GOAL_NODE_ID,
+              type: 'tactic-edge',
+              data: { tactic: existingNodeEdge?.data?.tactic || n.tactic, resolved: true },
+              deletable: false
+            });
+          } else {
+            flowEdges.push({
+              id: uuidv4(),
+              source: n.id,
+              target: GOAL_NODE_ID,
+              type: 'tactic-edge',
+              data: { tactic: 'sorry', resolved: true },
+              animated: true,
+              deletable: false
+            });
+          }
+        }
+      }
+
+      const unresolvedEdge = state.edges.find(e => e.data?.resolved === false);
+      const resolutionId = uuidv4();
+      for (const e of pyodideEdges) {
+        const edgeId = `${e.source}_${e.target}`;
+        const existingEdge = state.edges.find((edge) => edge.id === `${e.source}_${e.target}`);
+
+        const tactic = existingEdge ? existingEdge?.data?.tactic : unresolvedEdge ? unresolvedEdge?.data?.tactic : e.label;
+
+        flowEdges.push({
+          id: edgeId,
+          source: e.source,
+          target: e.target,
+          type: 'tactic-edge',
+          data: { tactic, resolutionId },
+          deletable: false
+        });
+      }
+
+      flowNodes.push({
+        id: GOAL_NODE_ID,
+        position: {
+          x: 0,
+          y: 0
+        },
+        deletable: false,
+        type: 'goal',
+        data: {
+          label: state.goal.input,
+        }
+      });
+      const layoutResult = getLayoutedElements(flowNodes, flowEdges, { direction: 'TB' });
+      state.nodes = layoutResult.nodes;
+      state.edges = layoutResult.edges;
+    });
   },
 });
 

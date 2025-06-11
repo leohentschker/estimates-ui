@@ -1,9 +1,32 @@
 import { PenTool, FileLineChartIcon } from "lucide-react";
 import { Button } from "./Button";
-import { useAppSelector } from "../store";
-import { useAppDispatch } from "../store";
+import { useAppDispatch, useAppSelector } from "../store";
 import { selectMode, setMode } from "../features/ui/uiSlice";
 import { TypographyH2 } from "./Typography";
+
+function ModeSwitcherButton({
+  active,
+  icon,
+  label,
+  onClick
+}: {
+  active: boolean,
+  icon: React.ReactNode,
+  label: string,
+  onClick: () => void
+}): React.ReactElement {
+  return (
+    <Button
+      variant={active ? "primary" : "ghost"}
+      size="sm"
+      onClick={onClick}
+      className="w-32"
+    >
+      <span className="mr-1">{icon}</span>
+      {label}
+    </Button>
+  )
+}
 
 export default function ModeSwitcher(): React.ReactElement {
   const viewMode = useAppSelector(selectMode);
@@ -16,24 +39,18 @@ export default function ModeSwitcher(): React.ReactElement {
           {viewMode === "assumptions" ? "Assumptions Mode" : "Tactics Mode"}
         </TypographyH2>
         <div className="flex items-center bg-gray-100 rounded-lg p-1">
-          <Button
-            variant={viewMode === "assumptions" ? "primary" : "ghost"}
-            size="sm"
+          <ModeSwitcherButton
+            active={viewMode === "assumptions"}
+            icon={<PenTool className="h-4 w-4" />}
+            label="Assumptions"
             onClick={() => dispatch(setMode("assumptions"))}
-            className="h-8 w-32 justify-center"
-          >
-            <PenTool className="h-4 w-4 mr-1" />
-            Assumptions
-          </Button>
-          <Button
-            variant={viewMode === "tactics" ? "primary" : "ghost"}
-            size="sm"
+          />
+          <ModeSwitcherButton
+            active={viewMode === "tactics"}
+            icon={<FileLineChartIcon className="h-4 w-4" />}
+            label="Tactics"
             onClick={() => dispatch(setMode("tactics"))}
-            className="h-8 w-32 justify-center"
-          >
-            <FileLineChartIcon className="h-4 w-4 mr-1" />
-            Tactics
-          </Button>
+          />
         </div>
       </div>
     </div>

@@ -1,17 +1,17 @@
 import '@xyflow/react/dist/style.css';
-import { Input } from '../Input';
-import { Button } from '../Button';
-import LatexString from './LatexString';
-import { addAssumption, addVariables, setAssumptions, setGoal, setVariables, VariableType } from '../../features/proof/proofSlice';
-import { TYPE_TO_SET } from '../../features/proof/proofSlice';
-import { useAppDispatch, useAppSelector } from '../../store';
+import { Input } from '../../Input';
+import { Button } from '../../Button';
+import LatexString from '../LatexString';
+import { addAssumption, addVariables, setAssumptions, setGoal, setVariables, VariableType } from '../../../features/proof/proofSlice';
+import { TYPE_TO_SET } from '../../../features/proof/proofSlice';
+import { useAppDispatch, useAppSelector } from '../../../store';
 import { useEffect, useRef, useState } from 'react';
-import { TypographyH3 } from '../Typography';
+import { TypographyH3 } from '../../Typography';
 import { ChevronDown, X } from 'lucide-react';
 import { Plus } from 'lucide-react';
 import classNames from 'classnames';
-import { Card } from '../Card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../Select';
+import { Card } from '../../Card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../Select';
 
 const logicalSymbols = [
   { symbol: " ∧ ", code: "And", description: "Logical AND" },
