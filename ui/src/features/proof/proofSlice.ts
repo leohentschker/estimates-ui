@@ -7,6 +7,7 @@ import { runProofCode } from '../pyodide/pyodideSlice';
 import { GOAL_NODE_TYPE, TACTIC_NODE_TYPE, TACTIC_EDGE_TYPE, SORRY_TACTIC, GOAL_NODE_ID } from '../../metadata/graph';
 import { VariableType } from '../../metadata/variables';
 import { layoutGraphElements } from './dagre';
+import type { WritableDraft } from 'immer';
 
 export type Variable = {
   name: string;
@@ -67,7 +68,7 @@ export const proofSlice = createSlice({
   initialState,
   reducers: {
     setNodes: (state, action: PayloadAction<Node[]>) => {
-      state.nodes = action.payload;
+      state.nodes = action.payload as WritableDraft<Node[]>;
     },
     setEdges: (state, action: PayloadAction<Edge[]>) => {
       state.edges = action.payload;
@@ -194,7 +195,7 @@ export const proofSlice = createSlice({
       assumptions: Relation[];
       goal: Goal;
     }>) => {
-      state.nodes = initialState.nodes;
+      state.nodes = initialState.nodes as WritableDraft<Node[]>;
       state.edges = initialState.edges;
       state.variables = action.payload.variables;
       state.assumptions = action.payload.assumptions;
@@ -246,12 +247,12 @@ export const proofSlice = createSlice({
         }
       ];
       const layoutResult = layoutGraphElements(newNodes, newEdges, { direction: 'TB' });
-      state.nodes = layoutResult.nodes;
+      state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     },
     fixLayout: (state) => {
       const layoutResult = layoutGraphElements(state.nodes, state.edges, { direction: 'TB' });
-      state.nodes = layoutResult.nodes;
+      state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     },
   },
@@ -348,7 +349,7 @@ export const proofSlice = createSlice({
         }
       });
       const layoutResult = layoutGraphElements(flowNodes, flowEdges, { direction: 'TB' });
-      state.nodes = layoutResult.nodes;
+      state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     });
   },
