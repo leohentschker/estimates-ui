@@ -3,8 +3,8 @@ import LatexString from "../LatexString";
 import { Popover, PopoverContent, PopoverTrigger } from "../../Popover";
 import { Button } from "../../Button";
 import { Input } from "../../Input";
-import { useAppSelector } from "../../../store";
-import { selectAssumptions, selectVariables } from "../../../features/proof/proofSlice";
+import { useAppDispatch, useAppSelector } from "../../../store";
+import { applyTactic, selectAssumptions, selectVariables } from "../../../features/proof/proofSlice";
 import classNames from "classnames";
 
 type Tactic = {
@@ -31,15 +31,7 @@ export const AVAILABLE_LEMMAS: Lemma[] = [
   { name: 'AM-GM Inequality', value: 'Amgm', arguments: 'expressions' },
 ]
 
-export default function TacticPopover({
-  applyLemmaToNode,
-  applyTacticToNode,
-  nodeId
-}: {
-  applyLemmaToNode: (nodeId: string, lemma: string) => void;
-  applyTacticToNode: (nodeId: string, tactic: string) => void;
-  nodeId: string;
-}) {
+export default function TacticPopover({ nodeId }: { nodeId: string }) {
   const [tacticSearch, setTacticSearch] = useState('');
   const [tacticOpen, setTacticOpen] = useState(false);
 
@@ -50,6 +42,11 @@ export default function TacticPopover({
   const [lemmaArguments, setLemmaArguments] = useState<string>('');
   const variables = useAppSelector(selectVariables);
   const hypotheses = useAppSelector(selectAssumptions);
+  const appDispatch = useAppDispatch();
+
+  const applyTacticToNode = (nodeId: string, tactic: string) => appDispatch(applyTactic({ nodeId, tactic, isLemma: false }));
+  const applyLemmaToNode = (nodeId: string, lemma: string) => appDispatch(applyTactic({ nodeId, tactic: lemma, isLemma: true }));
+
 
   const argumentSelectOptions = useMemo(() => {
     let options: { label: string, value: string }[] = [];

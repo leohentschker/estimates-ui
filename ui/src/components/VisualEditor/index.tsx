@@ -1,69 +1,34 @@
 import { Background, BackgroundVariant, NodeTypes, ReactFlow, EdgeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useMemo, useRef } from 'react';
-import BaseNode from './Nodes/BaseNode';
 import GoalNode from './Nodes/GoalNode';
 import TacticNode from './Nodes/TacticNode';
 import TacticEdge from './TacticEdge';
 import { useAppDispatch } from '../../store';
-import { selectEdges, onNodesChange, onEdgesChange, removeEdge, selectVariables, selectAssumptions, selectGoal, applyTactic, resetProof } from '../../features/proof/proofSlice';
+import { selectEdges, onNodesChange, onEdgesChange, resetProof } from '../../features/proof/proofSlice';
 import { selectNodes } from '../../features/proof/proofSlice';
 import { useAppSelector } from '../../store';
 import { Button } from '../Button';
 import { RecycleIcon } from 'lucide-react';
+import { GOAL_NODE_TYPE, TACTIC_EDGE_TYPE, TACTIC_NODE_TYPE } from '../../metadata/graph';
 
 
 export default function VisualEditor(): React.ReactElement {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const appDispatch = useAppDispatch();
 
   const nodes = useAppSelector(selectNodes);
   const edges = useAppSelector(selectEdges);
-  const appDispatch = useAppDispatch();
-  const variables = useAppSelector(selectVariables);
-  const relations = useAppSelector(selectAssumptions);
-  const goal = useAppSelector(selectGoal);
 
-  const handleApplyTacticToNode = (nodeId: string, tactic: string) => {
-    appDispatch(applyTactic({ nodeId, tactic, isLemma: false }));
+  const nodeTypes: NodeTypes = {
+    [GOAL_NODE_TYPE]: GoalNode,
+    [TACTIC_NODE_TYPE]: TacticNode
   };
 
-  const handleApplyLemmaToNode = (nodeId: string, lemma: string) => {
-    appDispatch(applyTactic({ nodeId, tactic: lemma, isLemma: true }));
+  const edgeTypes: EdgeTypes = {
+    [TACTIC_EDGE_TYPE]: TacticEdge
   };
-
-  const nodeTypes: NodeTypes = useMemo(() => ({
-    base: (props) => (
-      <BaseNode
-        {...props}
-        applyTacticToNode={(nodeId, tactic) => handleApplyTacticToNode(nodeId, tactic)}
-        applyLemmaToNode={(nodeId, lemma) => handleApplyLemmaToNode(nodeId, lemma)}
-        relations={relations}
-        variables={variables}
-        edges={edges}
-      />
-    ),
-    goal: (props) => <GoalNode {...props} goal={goal} />,
-    tactic: props => (
-      <TacticNode
-        {...props}
-        edges={edges}
-        applyTacticToNode={handleApplyTacticToNode}
-        applyLemmaToNode={handleApplyLemmaToNode}
-      />
-    ),
-  }), [variables, relations, edges, goal]);
-
-  const edgeTypes: EdgeTypes = useMemo(() => ({
-    'tactic-edge': props => (
-      <TacticEdge
-        {...props}
-        handleRemoveEdge={() => appDispatch(removeEdge(props.id))}
-      />
-    ),
-  }), [edges]);
 
   return (
-    <div ref={containerRef} className='flex-1 relative'>
+    <div className='flex-1 relative'>
       <ReactFlow
         nodes={nodes}
         edges={edges}

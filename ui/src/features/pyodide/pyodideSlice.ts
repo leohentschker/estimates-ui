@@ -2,8 +2,9 @@ import { createAction, createAsyncThunk, createListenerMiddleware, createSlice, 
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../store'
 import { loadAndRunPyodide } from './loader';
-import { addAssumption, addVariables, applyTactic, fixLayout, GOAL_NODE_ID, handleProofComplete, handleProofIncomplete, loadProblem, removeEdge, resetProof, setAssumptions, setEdges, setGoal, setNodes, setVariables } from '../proof/proofSlice';
+import { addAssumption, addVariables, applyTactic, fixLayout, handleProofComplete, handleProofIncomplete, loadProblem, removeEdge, resetProof, setAssumptions, setEdges, setGoal, setNodes, setVariables } from '../proof/proofSlice';
 import { Edge, Node } from '@xyflow/react';
+import { GOAL_NODE_ID } from '../../metadata/graph';
 
 let customPyodide: {
   runPythonAsync: (code: string, { serializeToGraph }: { serializeToGraph: boolean }) =>
@@ -125,6 +126,7 @@ export const convertProofGraphToCode = createAsyncThunk('pyodide/convertProofGra
   const { edges, variables, assumptions, goal, nodes } = state.proof;
 
   const codeLines = [
+    `# generated ${new Date().toLocaleString()}`,
     'from estimates.main import *',
     'from sympy import *',
     'p = ProofAssistant();',

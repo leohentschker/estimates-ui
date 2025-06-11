@@ -2,6 +2,8 @@ import { BaseEdge, getStraightPath, MarkerType } from "@xyflow/react";
 
 import { EdgeLabelRenderer } from "@xyflow/react";
 import LatexString from "./LatexString";
+import { useAppDispatch } from "../../store";
+import { removeEdge } from "../../features/proof/proofSlice";
 
 export default function TacticEdge({
   id,
@@ -10,7 +12,6 @@ export default function TacticEdge({
   targetX,
   targetY,
   data,
-  handleRemoveEdge
 }: {
   id: string;
   sourceX: number;
@@ -18,8 +19,10 @@ export default function TacticEdge({
   targetX: number;
   targetY: number;
   data: { tactic: string };
-  handleRemoveEdge: (edgeId: string) => void;
 }) {
+  const appDispatch = useAppDispatch();
+  const handleRemoveEdge = (edgeId: string) => appDispatch(removeEdge(edgeId));
+
   const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
     sourceY,

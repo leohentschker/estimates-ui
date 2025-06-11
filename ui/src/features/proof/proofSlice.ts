@@ -3,34 +3,10 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../store'
 import { applyEdgeChanges, applyNodeChanges, Edge, EdgeChange, Node, NodeChange } from '@xyflow/react'
 import { v4 as uuidv4 } from 'uuid';
-import Dagre from 'dagre';
 import { runProofCode } from '../pyodide/pyodideSlice';
-
-const getLayoutedElements = (nodes: Node[], edges: Edge[], options: any) => {
-  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: options.direction, nodesep: 500, ranksep: 150 });
-
-  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
-  nodes.forEach((node) =>
-    g.setNode(node.id, {
-      ...node,
-      width: node.measured?.width ?? 0,
-      height: node.measured?.height ?? 0,
-    }),
-  );
-  Dagre.layout(g);
-  return {
-    nodes: nodes.map((node) => {
-      const position = g.node(node.id);
-      const x = position.x - (node.measured?.width ?? 0) / 2;
-      const y = position.y - (node.measured?.height ?? 0) / 2;
-      return { ...node, position: { x, y } };
-    }),
-    edges,
-  };
-};
-
-export type VariableType = 'pos_real' | 'real' | 'int' | 'bool' | 'pos_int' | 'nonneg_real';
+import { GOAL_NODE_TYPE, TACTIC_NODE_TYPE, TACTIC_EDGE_TYPE, SORRY_TACTIC, GOAL_NODE_ID } from '../../metadata/graph';
+import { VariableType } from '../../metadata/variables';
+import { layoutGraphElements } from './dagre';
 
 export type Variable = {
   name: string;
@@ -40,21 +16,10 @@ export type Variable = {
 export type Relation = {
   input: string;
   name: string;
-  valid: boolean;
 }
 
 export type Goal = {
   input: string;
-  valid: boolean;
-}
-
-export const TYPE_TO_SET = {
-  pos_real: '\\mathbb{R}^+',
-  pos_int: '\\mathbb{Z}^+',
-  real: '\\mathbb{R}',
-  int: '\\mathbb{Z}',
-  bool: '\\mathbb{B}',
-  nonneg_real: '\\mathbb{R}_{\\geq 0}',
 }
 
 interface ProofState {
@@ -65,30 +30,35 @@ interface ProofState {
   assumptions: Relation[];
 }
 
-export const GOAL_NODE_ID = 'goal-node';
 const initialState: ProofState = {
   nodes: [],
   edges: [],
   variables: [
     {
-      name: 'x_1',
-      type: 'real'
+      name: 'x',
+      type: 'nonneg_real'
     },
     {
-      name: 'x_2',
-      type: 'real'
+      name: 'y',
+      type: 'nonneg_real'
+    },
+    {
+      name: 'z',
+      type: 'nonneg_real'
     }
   ],
   assumptions: [
     {
-      input: 'x_1 + x_2 > 0',
-      valid: true,
+      input: 'x < 2*y',
       name: 'h1'
+    },
+    {
+      input: 'y < 3*z + 1',
+      name: 'h2'
     }
   ],
   goal: {
-    input: 'Or(x_1 > 0, x_2 > 0)',
-    valid: true
+    input: 'x < 7 * z + 2',
   }
 };
 
@@ -134,31 +104,27 @@ export const proofSlice = createSlice({
       const otherEdgesToRemove = state.edges.filter((e) => edgeToRemove?.data?.resolutionId && e.data?.resolutionId === edgeToRemove?.data?.resolutionId);
       const edgeIdsToRemove = [...otherEdgesToRemove, edgeToRemove].map((e) => e?.id);
 
-      console.log(edgeIdsToRemove, 'EDGE IDS TO REMOVE');
-
       const target = state.nodes.find((n) => n.id === edgeToRemove?.target);
       const newEdges = state.edges.filter((e) => !edgeIdsToRemove.includes(e.id));
       const newNodes = state.nodes.filter((n) => n.id !== target?.id);
-      console.log('REMOVED', newEdges.length - state.edges.length, 'EDGES');
 
       state.edges = [...newEdges, {
         id: uuidv4(),
         source: edgeSource,
         target: GOAL_NODE_ID,
-        type: 'tactic-edge',
-        data: { tactic: 'sorry' },
+        type: TACTIC_EDGE_TYPE,
+        data: { tactic: SORRY_TACTIC },
         animated: true,
       }];
       state.nodes = newNodes;
     },
     handleProofIncomplete: (state) => {
-      const sorryEdge = state.edges.find((edge) => edge.data?.tactic === 'sorry');
+      const sorryEdge = state.edges.find((edge) => edge.data?.tactic === SORRY_TACTIC);
       if (sorryEdge) {
         return;
       }
       const winEdge = state.edges.find((edge) => edge.data?.tactic === 'win');
       if (!winEdge) {
-        console.log('No win edge, sorry edge found, and proof incomplete');
         return;
       }
       const newEdges = [
@@ -167,15 +133,15 @@ export const proofSlice = createSlice({
           id: uuidv4(),
           source: winEdge.source,
           target: winEdge.target,
-          type: 'tactic-edge',
-          data: { tactic: 'sorry' },
+          type: TACTIC_EDGE_TYPE,
+          data: { tactic: SORRY_TACTIC },
           animated: true,
         }
       ];
       state.edges = newEdges;
     },
     handleProofComplete: (state) => {
-      const sorryEdge = state.edges.find((edge) => edge.data?.tactic === 'sorry');
+      const sorryEdge = state.edges.find((edge) => edge.data?.tactic === SORRY_TACTIC);
       const winningTacticNode = state.nodes.find((node) => node.id === sorryEdge?.source);
       if (!winningTacticNode) {
         return;
@@ -196,7 +162,7 @@ export const proofSlice = createSlice({
           id: uuidv4(),
           source: nodeBeforeWinningTacticNode.id,
           target: GOAL_NODE_ID,
-          type: 'tactic-edge',
+          type: TACTIC_EDGE_TYPE,
           data: { tactic: edgeIntoWinningTacticNode.data?.tactic },
         }
       ];
@@ -218,8 +184,8 @@ export const proofSlice = createSlice({
           id: uuidv4(),
           source: sourceNode.id,
           target: sinkNode.id,
-          type: 'tactic-edge',
-          data: { tactic: 'sorry' },
+          type: TACTIC_EDGE_TYPE,
+          data: { tactic: SORRY_TACTIC },
         }
       ];
     },
@@ -246,7 +212,7 @@ export const proofSlice = createSlice({
           selected: true,
           isLemma: action.payload.isLemma,
         },
-        type: 'tactic',
+        type: TACTIC_NODE_TYPE,
         position: { x: 0, y: 0 },
         deletable: false
       }];
@@ -259,9 +225,9 @@ export const proofSlice = createSlice({
           id: newEdgeId,
           source: newNodeId,
           target: GOAL_NODE_ID,
-          type: 'tactic-edge',
+          type: TACTIC_EDGE_TYPE,
           data: {
-            tactic: 'sorry'
+            tactic: SORRY_TACTIC
           },
           animated: true,
           deletable: false
@@ -270,7 +236,7 @@ export const proofSlice = createSlice({
           id: uuidv4(),
           source: action.payload.nodeId,
           target: newNodeId,
-          type: 'tactic-edge',
+          type: TACTIC_EDGE_TYPE,
           data: {
             tactic: action.payload.tactic,
             isLemma: action.payload.isLemma,
@@ -279,12 +245,12 @@ export const proofSlice = createSlice({
           deletable: false
         }
       ];
-      const layoutResult = getLayoutedElements(newNodes, newEdges, { direction: 'TB' });
+      const layoutResult = layoutGraphElements(newNodes, newEdges, { direction: 'TB' });
       state.nodes = layoutResult.nodes;
       state.edges = layoutResult.edges;
     },
     fixLayout: (state) => {
-      const layoutResult = getLayoutedElements(state.nodes, state.edges, { direction: 'TB' });
+      const layoutResult = layoutGraphElements(state.nodes, state.edges, { direction: 'TB' });
       state.nodes = layoutResult.nodes;
       state.edges = layoutResult.edges;
     },
@@ -302,7 +268,6 @@ export const proofSlice = createSlice({
         return;
       }
       if (pyodideResult.error) {
-        console.error('PYODIDE ERROR', pyodideResult.error);
         return;
       }
       const pyodideNodes = pyodideResult.output.nodes as { id: string, label: string, tactic: string, sorry_free: boolean }[];
@@ -318,13 +283,13 @@ export const proofSlice = createSlice({
             y: 0
           },
           deletable: false,
-          type: 'tactic',
+          type: TACTIC_NODE_TYPE,
           data: {
             label: n.label,
           }
         });
         const edgesFromNode = pyodideEdges.filter((e) => e.source === n.id);
-        
+
         const existingNodeEdge = state.edges.find((e) => e.source === n.id);
 
         if (!edgesFromNode.length) {
@@ -333,7 +298,7 @@ export const proofSlice = createSlice({
               id: uuidv4(),
               source: n.id,
               target: GOAL_NODE_ID,
-              type: 'tactic-edge',
+              type: TACTIC_EDGE_TYPE,
               data: { tactic: existingNodeEdge?.data?.tactic || n.tactic, resolved: true },
               deletable: false
             });
@@ -342,8 +307,8 @@ export const proofSlice = createSlice({
               id: uuidv4(),
               source: n.id,
               target: GOAL_NODE_ID,
-              type: 'tactic-edge',
-              data: { tactic: 'sorry', resolved: true },
+              type: TACTIC_EDGE_TYPE,
+              data: { tactic: SORRY_TACTIC, resolved: true },
               animated: true,
               deletable: false
             });
@@ -358,13 +323,14 @@ export const proofSlice = createSlice({
         const existingEdge = state.edges.find((edge) => edge.id === `${e.source}_${e.target}`);
 
         const tactic = existingEdge ? existingEdge?.data?.tactic : unresolvedEdge ? unresolvedEdge?.data?.tactic : e.label;
+        const isLemma = existingEdge ? existingEdge?.data?.isLemma : unresolvedEdge ? unresolvedEdge?.data?.isLemma : false;
 
         flowEdges.push({
           id: edgeId,
           source: e.source,
           target: e.target,
-          type: 'tactic-edge',
-          data: { tactic, resolutionId },
+          type: TACTIC_EDGE_TYPE,
+          data: { tactic, resolutionId, isLemma },
           deletable: false
         });
       }
@@ -376,12 +342,12 @@ export const proofSlice = createSlice({
           y: 0
         },
         deletable: false,
-        type: 'goal',
+        type: GOAL_NODE_TYPE,
         data: {
           label: state.goal.input,
         }
       });
-      const layoutResult = getLayoutedElements(flowNodes, flowEdges, { direction: 'TB' });
+      const layoutResult = layoutGraphElements(flowNodes, flowEdges, { direction: 'TB' });
       state.nodes = layoutResult.nodes;
       state.edges = layoutResult.edges;
     });

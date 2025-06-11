@@ -4,6 +4,7 @@ import { Button } from "../Button";
 import { selectProofComplete } from "../../features/pyodide/pyodideSlice";
 import { useMemo } from "react";
 import { setMode } from "../../features/ui/uiSlice";
+import { GOAL_NODE_ID } from "../../metadata/graph";
 
 export default function TutorialExample({
   lines,
@@ -35,7 +36,7 @@ export default function TutorialExample({
     if (!tactic) {
       return null;
     }
-    const nonGoalNodes = nodes.filter((node) => node.id !== 'goal-node');
+    const nonGoalNodes = nodes.filter((node) => node.id !== GOAL_NODE_ID);
     if (tactic.position === 'last') {
       return nonGoalNodes[nonGoalNodes.length - 1];
     }
@@ -49,9 +50,14 @@ export default function TutorialExample({
             className="absolute top-2 right-2 text-sm text-gray-800"
             onClick={() => {
               appDispatch(loadProblem(problem));
-              if (tactic) {
-                appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }));
+              const target = targetNode?.id;
+              if (!target) {
+                return;
               }
+              if (tactic) {
+                appDispatch(applyTactic({ nodeId: target, tactic: tactic.target, isLemma: false }));
+              }
+              appDispatch(setMode('tactics'));
             }}>
             Load problem
           </Button>
@@ -62,7 +68,11 @@ export default function TutorialExample({
           <Button
             className="absolute top-2 right-2 text-sm text-gray-800"
             onClick={() => {
-              appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }));
+              const target = targetNode?.id;
+              if (!target) {
+                return;
+              }
+              appDispatch(applyTactic({ nodeId: target, tactic: tactic.target, isLemma: false }));
               appDispatch(setMode('tactics'));
             }}
             disabled={proofSolved}

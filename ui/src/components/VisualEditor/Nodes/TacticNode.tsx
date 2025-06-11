@@ -1,51 +1,36 @@
-import { Edge, Handle, Position } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import TacticPopover from "./TacticPopover";
-
-export const stripEstimatesPrefixes = (result: string) => {
-  return result
-    .replace(/Proof Assistant is in tactic mode./, '')
-    .replace(/Current proof state:/, '')
-    .replace(/: bool/g, '\\in\\mathbb{B},\\\\')
-    .replace(/: int/g, '\\in\\mathbb{Z},\\\\')
-    .replace(/: real/g, '\\in\\mathbb{R},\\\\')
-    .replace(/: nat/g, '\\in\\mathbb{N},\\\\')
-    .replace(/: nonneg_real/g, '\\in\\mathbb{R}^+_0,\\\\')
-    .replace(/: nonneg_int/g, '\\in\\mathbb{Z}^+_0,\\\\')
-    .replace(/: pos_int/g, '\\in\\mathbb{Z}^+,\\\\')
-    .replace(/: pos_real/g, '\\in\\mathbb{R}^+,\\\\')
-    .replace(/This is goal \d+ of \d+/, '')
-    .trim();
-}
+import { useAppSelector } from "../../../store";
+import { selectEdges } from "../../../features/proof/proofSlice";
 
 export default function TacticNode({
   id,
-  edges,
-  applyTacticToNode,
-  applyLemmaToNode,
   data
 }: {
-  id: string, edges: Edge[];
-  applyTacticToNode: (nodeId: string, tactic: string) => void;
-  applyLemmaToNode: (nodeId: string, lemma: string) => void;
+  id: string,
   data: {
     label: string;
   }
 }) {
   const simplifiedResult = data.label;
-  const tactic = edges.find((edge) => edge.source === id);
+
+  const edges = useAppSelector(selectEdges);
+  const outboundEdge = edges.find((edge) => edge.source === id);
+  const hasInboundEdges = edges.some((edge) => edge.target === id);
 
   return (
     <div className='flex flex-col gap-2'>
-      <Handle type="target" position={Position.Top} id={`${id}-top`} />
+      {hasInboundEdges && <Handle type="target" position={Position.Top} id={`${id}-top`} />}
       {
         simplifiedResult ? (
-          <div className="tacticnode border border-gray-300 rounded-md p-2 items-center justify-center text-center">
+          <div className="border border-gray-300 rounded-md p-2 items-center justify-center text-center">
             <span className="text-xs max-w-16">
               {simplifiedResult}
             </span>
           </div>
         ) : (
-          <div className="tacticnode border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center">
+          // loading state
+          <div className="border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center">
             <div className="animate-pulse flex flex-col gap-2">
               <div className="h-2 bg-gray-200 rounded w-3/4"></div>
               <div className="h-2 bg-gray-200 rounded w-1/2"></div>
@@ -54,7 +39,7 @@ export default function TacticNode({
         )
       }
       {
-        tactic && (
+        outboundEdge && (
           <Handle
             type="source"
             position={Position.Bottom}
@@ -63,12 +48,8 @@ export default function TacticNode({
         )
       }
       {
-        (!tactic || tactic.data?.tactic === 'sorry') && (
-          <TacticPopover
-            applyLemmaToNode={applyLemmaToNode}
-            applyTacticToNode={applyTacticToNode}
-            nodeId={id}
-          />
+        (!outboundEdge || outboundEdge.data?.tactic === 'sorry') && (
+          <TacticPopover nodeId={id} />
         )
       }
     </div>

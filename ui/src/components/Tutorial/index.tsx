@@ -4,10 +4,10 @@ import { Button } from '../Button';
 import { X } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { setShowTutorial } from '../../features/ui/uiSlice';
-import OverviewTab from './OverviewTab';
 import CreatingProblemsTab from './CreatingProblemsTab';
 import OrdersOfMagnitudeTab from './OrdersOfMagnitudeTab';
 import LemmasTab from './LemmasTab';
+import HowItWorksTab from './HowItWorksTab';
 
 const LEMMAS_TAB_ID = 'lemmas';
 const HOW_IT_WORKS_TAB_ID = 'how-it-works';
@@ -17,11 +17,11 @@ const tabs = [
   {
     id: HOW_IT_WORKS_TAB_ID,
     label: 'Overview',
-    component: <OverviewTab />,
+    component: <HowItWorksTab />
   },
   {
     id: CREATING_PROBLEMS_TAB_ID,
-    label: 'Creating Problems',
+    label: 'New problems',
     component: <CreatingProblemsTab />,
   },
   {
@@ -51,7 +51,7 @@ export default function Tutorial(): React.ReactElement {
         </Button>
       </div>
       <div className='sticky top-0 bg-white z-10 border-b border-gray-200'>
-        <div className='flex items-center gap-2 p-4 overflow-x-auto'>
+        <div className='flex items-center gap-1 p-4 overflow-x-auto'>
           {
             tabs.map((tab) => (
               <Button
