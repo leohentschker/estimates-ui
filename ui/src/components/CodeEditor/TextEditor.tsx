@@ -19,8 +19,8 @@ export default function TextEditor() {
       value={code}
       height='100%'
       width='100%'
-      fontSize={16}
-      lineHeight={28}
+      fontSize={14}
+      lineHeight={20}
     />
   )
 }

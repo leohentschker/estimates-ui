@@ -1,22 +1,16 @@
 import { Handle, Position } from "@xyflow/react";
-import { Goal } from "../../../features/proof/proofSlice";
+import { selectGoal } from "../../../features/proof/proofSlice";
 import LatexString from "../LatexString";
 import { useMemo } from "react";
 import { useAppSelector } from "../../../store";
 import { selectProofComplete } from "../../../features/pyodide/pyodideSlice";
 import classNames from "classnames";
 
-export default function GoalNode({
-  id,
-  goal
-}: {
-  id: string;
-  goal: Goal;
-}) {
+export default function GoalNode({ id }: { id: string }) {
+  const goal = useAppSelector(selectGoal);
   const goalLatex = useMemo(() => {
     return `${goal.input}`;
   }, [goal]);
-
   const isProofComplete = useAppSelector(selectProofComplete);
 
   return (

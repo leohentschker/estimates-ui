@@ -2,12 +2,17 @@ import { useDispatch, useSelector } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import proofReducer from './features/proof/proofSlice'
 import pyodideReducer from './features/pyodide/pyodideSlice'
+import uiReducer from './features/ui/uiSlice'
+import { codegenListenerMiddleware } from './features/pyodide/pyodideSlice'
 
 export const store = configureStore({
   reducer: {
     proof: proofReducer,
     pyodide: pyodideReducer,
+    ui: uiReducer
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().prepend(codegenListenerMiddleware.middleware)
 })
 
 export type RootState = ReturnType<typeof store.getState>

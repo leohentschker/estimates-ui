@@ -3,6 +3,9 @@ import { Goal, loadProblem, Variable, Relation, applyTactic, selectNodes, addVar
 import { Button } from "../Button";
 import { selectProofComplete } from "../../features/pyodide/pyodideSlice";
 import { useMemo } from "react";
+import { selectIsMobile, setMode } from "../../features/ui/uiSlice";
+import { GOAL_NODE_ID } from "../../metadata/graph";
+import classNames from "classnames";
 
 export default function TutorialExample({
   lines,
@@ -30,11 +33,13 @@ export default function TutorialExample({
   const proofSolved = useAppSelector(selectProofComplete);
   const nodes = useAppSelector(selectNodes);
   const existingVariables = useAppSelector(selectVariables);
+  const isMobile = useAppSelector(selectIsMobile);
+
   const targetNode = useMemo(() => {
     if (!tactic) {
       return null;
     }
-    const nonGoalNodes = nodes.filter((node) => node.id !== 'goal-node');
+    const nonGoalNodes = nodes.filter((node) => node.id !== GOAL_NODE_ID);
     if (tactic.position === 'last') {
       return nonGoalNodes[nonGoalNodes.length - 1];
     }
@@ -45,12 +50,20 @@ export default function TutorialExample({
       {
         problem && (
           <Button
-            className="absolute top-2 right-2 text-sm text-gray-800"
+            className={classNames(
+              "absolute top-2 right-2 text-sm text-gray-800",
+              isMobile ? "block" : "hidden md:block"
+            )}
             onClick={() => {
               appDispatch(loadProblem(problem));
-              if (tactic) {
-                appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }));
+              const target = targetNode?.id;
+              if (!target) {
+                return;
               }
+              if (tactic) {
+                appDispatch(applyTactic({ nodeId: target, tactic: tactic.target, isLemma: false }));
+              }
+              appDispatch(setMode('tactics'));
             }}>
             Load problem
           </Button>
@@ -59,8 +72,18 @@ export default function TutorialExample({
       {
         tactic && !problem && (
           <Button
-            className="absolute top-2 right-2 text-sm text-gray-800"
-            onClick={() => appDispatch(applyTactic({ nodeId: targetNode?.id || 'base-node', tactic: tactic.target, isLemma: false }))}
+            className={classNames(
+              "absolute top-2 right-2 text-sm text-gray-800",
+              isMobile ? "block" : "hidden md:block"
+            )}
+            onClick={() => {
+              const target = targetNode?.id;
+              if (!target) {
+                return;
+              }
+              appDispatch(applyTactic({ nodeId: target, tactic: tactic.target, isLemma: false }));
+              appDispatch(setMode('tactics'));
+            }}
             disabled={proofSolved}
           >
             Apply tactic
@@ -70,7 +93,10 @@ export default function TutorialExample({
       {
         variables && (
           <Button
-            className="absolute top-2 right-2 text-sm text-gray-800"
+            className={classNames(
+              "absolute top-2 right-2 text-sm text-gray-800",
+              isMobile ? "block" : "hidden md:block"
+            )}
             onClick={() => {
               if (existingVariables.filter((variable) => variable.name).length > 0) {
                 appDispatch(addVariables(variables));
@@ -87,7 +113,10 @@ export default function TutorialExample({
       {
         assumptions && (
           <Button
-            className="absolute top-2 right-2 text-sm text-gray-800"
+            className={classNames(
+              "absolute top-2 right-2 text-sm text-gray-800",
+              isMobile ? "block" : "hidden md:block"
+            )}
             onClick={() => {
               appDispatch(setAssumptions(assumptions));
             }}
@@ -100,7 +129,10 @@ export default function TutorialExample({
       {
         goal && (
           <Button
-            className="absolute top-2 right-2 text-sm text-gray-800"
+            className={classNames(
+              "absolute top-2 right-2 text-sm text-gray-800",
+              isMobile ? "block" : "hidden md:block"
+            )}
             onClick={() => {
               appDispatch(setGoal(goal));
             }}
