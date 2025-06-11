@@ -36,7 +36,7 @@ export default function GoalForm() {
     const start = input.selectionStart || 0
     const end = input.selectionEnd || 0
     const newGoal = goal.input.slice(0, start) + symbol + goal.input.slice(end)
-    appDispatch(setGoal({ input: newGoal, valid: false }))
+    appDispatch(setGoal({ input: newGoal }))
     const newCursorPos = start + symbol.length
     input.setSelectionRange(newCursorPos, newCursorPos)
     input.focus()

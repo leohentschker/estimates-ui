@@ -49,18 +49,15 @@ export default function HowItWorksTab(): React.ReactElement {
           assumptions: [
             {
               input: 'x < 2*y',
-              valid: true,
               name: 'h1'
             },
             {
               input: 'y < 3*z + 1',
-              valid: true,
               name: 'h2'
             }
           ],
           goal: {
             input: 'x < 7*z + 2',
-            valid: true
           }
         }}
       />
@@ -188,18 +185,15 @@ export default function HowItWorksTab(): React.ReactElement {
           assumptions: [
             {
               input: 'x < 2*y',
-              valid: true,
               name: 'h1'
             },
             {
               input: 'y < 3*z + 1',
-              valid: true,
               name: 'h2'
             }
           ],
           goal: {
             input: 'x < 7*z',
-            valid: true
           }
         }}
         tactic={{
@@ -249,18 +243,15 @@ export default function HowItWorksTab(): React.ReactElement {
           assumptions: [
             {
               input: 'P | Q',
-              valid: true,
               name: 'h1'
             },
             {
               input: 'R | S',
-              valid: true,
               name: 'h2'
             }
           ],
           goal: {
             input: '(P & R) | (P & S) | (Q & R) | (Q & S)',
-            valid: true
           }
         }}
       />
@@ -430,18 +421,15 @@ export default function HowItWorksTab(): React.ReactElement {
           assumptions: [
             {
               input: '(x > -1) & (x < 1)',
-              valid: true,
               name: 'h1'
             },
             {
               input: '(y > -2) & (y < 2)',
-              valid: true,
               name: 'h2'
             }
           ],
           goal: {
             input: '(x + y > -3) & (x + y < 3)',
-            valid: true
           }
         }}
       />

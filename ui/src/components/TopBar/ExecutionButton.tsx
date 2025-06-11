@@ -26,8 +26,8 @@ export default function ExecutionButton() {
       >
         {executionMode === "auto" ? (
           <>
-            <Zap className="h-4 w-4 mr-2" />
-            Auto-compile
+            <Zap className="h-4 w-4 lg:mr-2" />
+            Auto<span className="hidden md:inline">-compile</span>
           </>
         ) : (
           <>

@@ -44,7 +44,6 @@ export default function LemmasTab(): React.ReactElement {
           assumptions: [],
           goal: {
             input: '2*x*y <= x**2 + y**2',
-            valid: true
           }
         }}
       />

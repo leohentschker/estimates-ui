@@ -23,8 +23,9 @@ export default function Estimates(): React.ReactElement {
 
   return (
     <div className="h-screen flex flex-col w-full">
-      {/* Top bar for the proof */}
+      {/* Desktop top bar */}
       <TopBar />
+
       <div className='flex-1 flex h-full'>
         {/* Togglable tutorial on how to use Estimates */}
         {showTutorial && <TutorialContainer />}
@@ -42,7 +43,7 @@ export default function Estimates(): React.ReactElement {
         </div>
 
         {/* Code editor and outputs */}
-        <CodeEditor hidden={!showCode} />
+        {showCode && <CodeEditor />}
       </div>
     </div>
   );

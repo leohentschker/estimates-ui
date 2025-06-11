@@ -16,7 +16,6 @@ export default function CreatingProblemsTab(): React.ReactElement {
           assumptions: [],
           goal: {
             input: 'True',
-            valid: true
           }
         }}
       />
@@ -103,12 +102,10 @@ export default function CreatingProblemsTab(): React.ReactElement {
         assumptions={[
           {
             input: 'x+y+z >= 3',
-            valid: true,
             name: 'h1'
           },
           {
             input: '(x>=y) & (y>=z)',
-            valid: true,
             name: 'h2'
           }
         ]}
@@ -130,7 +127,6 @@ export default function CreatingProblemsTab(): React.ReactElement {
         ]}
         goal={{
           input: 'Eq(z, 1)',
-          valid: true
         }}
       />
       <p>

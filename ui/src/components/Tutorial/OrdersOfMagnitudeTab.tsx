@@ -116,23 +116,19 @@ export default function OrdersOfMagnitudeTab(): React.ReactElement {
           assumptions: [
             {
               input: 'Bounded(k)',
-              valid: true,
               name: 'hk'
             },
             {
               input: 'x <= 2*N**2',
-              valid: true,
               name: 'h1'
             },
             {
               input: 'y < 3*N*k',
-              valid: true,
               name: 'h2'
             }
           ],
           goal: {
             input: 'lesssim(x*y, N**4)',
-            valid: true
           }
         }}
       />

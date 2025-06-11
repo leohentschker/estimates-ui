@@ -42,7 +42,7 @@ function Output(): React.ReactElement {
   }, [pyodideLoaded, debouncedCode]);
 
   return (
-    <div className='h-full flex flex-col'>
+    <div className='absolute md:relative w-full md:w-sm flex-shrink-0 border-l border-gray-200 h-full flex flex-col bg-white'>
       {/* Dialog for Jaspi error -- see 
       https://v8.dev/blog/jspi-ot, https://developer.chrome.com/blog/webassembly-jspi-origin-trial
        */}
@@ -134,20 +134,11 @@ function Output(): React.ReactElement {
  * Wrap our component in an error boundary so that we can catch errors that break out of the editor
  * from Pyodide unexpectedly and enable refreshing the editor.
  */
-export default function OutputContainer({ hidden }: { hidden: boolean }) {
+export default function OutputContainer() {
   return (
-    <div
-      className={classNames(
-        'w-full lg:max-w-lg min-w-md border-l border-gray-200',
-        {
-          'hidden': hidden
-        }
-      )}
-    >
-      {/* Pyodide has a tendency to break out of component error handling, so we wrap the component in an error boundary */}
+
       <OutputErrorBoundary>
         <Output />
       </OutputErrorBoundary>
-    </div>
   )
 }

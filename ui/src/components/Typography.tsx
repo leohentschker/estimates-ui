@@ -19,7 +19,7 @@ export function TypographyH2({ children, className }: { children: React.ReactNod
 
 export function TypographyH3({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-sm font-medium">
+    <h3>
       {children}
     </h3>
   )

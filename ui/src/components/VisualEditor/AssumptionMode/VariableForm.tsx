@@ -4,7 +4,6 @@ import { X } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { Plus } from "lucide-react";
 import { Button } from "../../Button";
-import { VariableType } from "../../../features/proof/proofSlice";
 import { TypographyH3 } from "../../Typography";
 import LatexString from "../LatexString";
 import { Card } from "../../Card";
@@ -14,7 +13,7 @@ import { useAppDispatch } from "../../../store";
 import { selectVariables } from "../../../features/proof/proofSlice";
 import { Input } from "../../Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../Select";
-import { SUPPORTED_VARIABLE_TYPES } from "../../../metadata/variables";
+import { SUPPORTED_VARIABLE_TYPES, VariableType } from "../../../metadata/variables";
 
 export default function VariableForm() {
   const [showVariableForm, setShowVariableForm] = useState(false);

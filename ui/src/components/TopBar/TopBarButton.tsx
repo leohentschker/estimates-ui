@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { Button } from "../Button";
 
 export default function TopBarButton({
@@ -18,7 +19,9 @@ export default function TopBarButton({
       onClick={onClick}
     >
       <span className="mr-1">{icon}</span>
-      {label}
+      <span className={classNames({ 'hidden md:block': !active })}>
+        {label}
+      </span>
     </Button>
   );
 }

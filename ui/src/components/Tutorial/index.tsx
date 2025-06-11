@@ -8,6 +8,7 @@ import CreatingProblemsTab from './CreatingProblemsTab';
 import OrdersOfMagnitudeTab from './OrdersOfMagnitudeTab';
 import LemmasTab from './LemmasTab';
 import HowItWorksTab from './HowItWorksTab';
+import classNames from 'classnames';
 
 const LEMMAS_TAB_ID = 'lemmas';
 const HOW_IT_WORKS_TAB_ID = 'how-it-works';
@@ -42,7 +43,9 @@ export default function Tutorial(): React.ReactElement {
 
   return (
     <div
-      className='w-2xl min-w-md border-r border-gray-200 h-full flex flex-col overflow-y-auto'
+      className={classNames(
+        'z-50 absolute md:relative w-full md:w-lg md:max-w-lg flex-shrink-0 border-r border-gray-200 h-full flex flex-col overflow-y-auto bg-white',
+      )}
     >
       <div className='bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between'>
         <TypographyH2>Tutorials</TypographyH2>

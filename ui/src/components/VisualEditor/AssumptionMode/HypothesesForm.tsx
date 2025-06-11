@@ -78,7 +78,6 @@ export default function HypothesesForm() {
                     appDispatch(addAssumption({
                       input: newHypothesis.expression,
                       name: newHypothesis.label,
-                      valid: false
                     }))
                     setNewHypothesis({ expression: '', label: '' })
                     setShowHypothesisForm(false)
