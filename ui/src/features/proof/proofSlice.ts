@@ -20,6 +20,7 @@ import {
 import type { VariableType } from "../../metadata/variables";
 import type { RootState } from "../../store";
 import { runProofCode } from "../pyodide/pyodideSlice";
+import { CODE_EDIT_MODE } from "../ui/uiSlice";
 import { layoutGraphElements } from "./dagre";
 
 export type Variable = {
@@ -143,73 +144,6 @@ export const proofSlice = createSlice({
       ];
       state.nodes = newNodes;
     },
-    handleProofIncomplete: (state) => {
-      const sorryEdge = state.edges.find(
-        (edge) => edge.data?.tactic === SORRY_TACTIC,
-      );
-      if (sorryEdge) {
-        return;
-      }
-      const winEdge = state.edges.find((edge) => edge.data?.tactic === "win");
-      if (!winEdge) {
-        return;
-      }
-      const newEdges = [
-        ...state.edges.filter((edge) => edge.id !== winEdge?.id),
-        {
-          id: uuidv4(),
-          source: winEdge.source,
-          target: winEdge.target,
-          type: TACTIC_EDGE_TYPE,
-          data: { tactic: SORRY_TACTIC },
-          animated: true,
-        },
-      ];
-      state.edges = newEdges;
-    },
-    handleProofComplete: (state) => {
-      const sorryEdge = state.edges.find(
-        (edge) => edge.data?.tactic === SORRY_TACTIC,
-      );
-      const winningTacticNode = state.nodes.find(
-        (node) => node.id === sorryEdge?.source,
-      );
-      if (!winningTacticNode) {
-        return;
-      }
-      const edgeIntoWinningTacticNode = state.edges.find(
-        (edge) => edge.target === winningTacticNode?.id,
-      );
-      if (!edgeIntoWinningTacticNode) {
-        return;
-      }
-
-      const nodeBeforeWinningTacticNode = state.nodes.find(
-        (node) => node.id === edgeIntoWinningTacticNode?.source,
-      );
-      if (!nodeBeforeWinningTacticNode) {
-        return;
-      }
-
-      const newEdges = [
-        ...state.edges.filter(
-          (edge) =>
-            edge.id !== sorryEdge?.id &&
-            edge.id !== edgeIntoWinningTacticNode?.id,
-        ),
-        {
-          id: uuidv4(),
-          source: nodeBeforeWinningTacticNode.id,
-          target: GOAL_NODE_ID,
-          type: TACTIC_EDGE_TYPE,
-          data: { tactic: edgeIntoWinningTacticNode.data?.tactic },
-        },
-      ];
-      state.edges = newEdges;
-      state.nodes = state.nodes.filter(
-        (node) => node.id !== winningTacticNode?.id,
-      );
-    },
     resetProof: (state) => {
       const sourceNode = state.nodes.find(
         (node) => !state.edges.some((edge) => edge.target === node.id),
@@ -321,7 +255,16 @@ export const proofSlice = createSlice({
       if (!action.payload) {
         return;
       }
-      const { result: pyodideResult, error: pyodideError } = action.payload;
+      const {
+        result: pyodideResult,
+        error: pyodideError,
+        editMode,
+      } = action.payload;
+
+      if (editMode === CODE_EDIT_MODE) {
+        return;
+      }
+
       if (!pyodideResult || pyodideError) {
         return;
       }
@@ -445,8 +388,6 @@ export const {
   onNodesChange,
   onEdgesChange,
   removeEdge,
-  handleProofComplete,
-  handleProofIncomplete,
   resetProof,
   addAssumption,
   loadProblem,

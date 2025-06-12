@@ -110,6 +110,13 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
                     className="cursor-pointer hover:bg-gray-100 rounded-md p-2"
                     onClick={() => {
                       setItemType("tactic");
+
+                      if (t.arguments.length === 0) {
+                        setSelected(t);
+                        apply();
+                        return;
+                      }
+
                       setSelected(t);
                       setArgs([]);
                       setStep("config");
@@ -130,8 +137,13 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
                     )}
                     onClick={() => {
                       setItemType("lemma");
-                      setSelected(l);
                       setArgs([]);
+                      if (l.arguments.length === 0) {
+                        setSelected(l);
+                        apply();
+                        return;
+                      }
+                      setSelected(l);
                       setStep("config");
                     }}
                   >

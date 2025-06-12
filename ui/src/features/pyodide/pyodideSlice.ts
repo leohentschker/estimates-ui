@@ -14,8 +14,6 @@ import {
   addVariables,
   applyTactic,
   fixLayout,
-  handleProofComplete,
-  handleProofIncomplete,
   loadProblem,
   removeEdge,
   resetProof,
@@ -25,11 +23,13 @@ import {
   setNodes,
   setVariables,
 } from "../proof/proofSlice";
+import { VISUAL_EDIT_MODE, setEditMode } from "../ui/uiSlice";
 import { loadAndRunPyodide } from "./loader";
 
 type Graph = {
   nodes: { id: string; label: string; tactic: string; sorry_free: boolean }[];
   edges: { source: string; target: string; label: string }[];
+  proof_complete: boolean;
 };
 
 let customPyodide: {
@@ -87,7 +87,7 @@ def traverse(node):
 ${codePrefix}
 out = ${codeSuffix}
 traverse(p.proof_tree)
-graph=dict(nodes=_nodes, edges=_edges)
+graph=dict(nodes=_nodes, edges=_edges, proof_complete=p.proof_tree.is_sorry_free())
 out
 `.trim();
         try {
@@ -111,20 +111,12 @@ out
         } catch (error) {
           return { error: `${error}` };
         }
-        const proofComplete = !!stdResults.find((line) =>
-          line.includes("Proof complete!"),
-        );
-        if (proofComplete) {
-          dispatch(handleProofComplete());
-        } else {
-          dispatch(handleProofIncomplete());
-        }
         dispatch(fixLayout());
         return {
           result,
           stdResults,
           output: pyodideOutput,
-          proofComplete,
+          proofComplete: pyodideOutput.proof_complete,
         };
       },
       stdResults,
@@ -135,15 +127,19 @@ out
 
 export const runProofCode = createAsyncThunk(
   "pyodide/runProof",
-  async (code: string) => {
+  async (code: string, { getState }) => {
+    const state = getState() as RootState;
+    const { editMode } = state.ui;
+
     if (!customPyodide) {
       return;
     }
+
     try {
       const result = await customPyodide.runPythonAsync(code, {
         serializeToGraph: false,
       });
-      return { result, error: null };
+      return { result, error: null, editMode };
     } catch (error) {
       let errorMessage: string;
       if (error instanceof Error) {
@@ -157,7 +153,7 @@ export const runProofCode = createAsyncThunk(
       } else {
         errorMessage = "An unexpected error occurred";
       }
-      return { result: null, error: errorMessage };
+      return { result: null, error: errorMessage, editMode };
     }
   },
 );
@@ -373,6 +369,7 @@ codegenListenerMiddleware.startListening({
     const state = listenerApi.getState() as RootState;
     const { executionMode } = state.ui;
     if (executionMode === "auto") {
+      await listenerApi.dispatch(setEditMode(VISUAL_EDIT_MODE));
       await listenerApi.dispatch(convertProofGraphToCode());
     }
   },
