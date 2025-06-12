@@ -32,12 +32,9 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
   const hypotheses = useAppSelector(selectAssumptions);
   const dispatch = useAppDispatch();
 
-  const apply = () => {
-    if (!selected) return;
-    const call = `${selected.className}(${args.join(", ")})`;
-    dispatch(
-      applyTactic({ nodeId, tactic: call, isLemma: itemType === "lemma" }),
-    );
+  const apply = (tactic: Tactic | Lemma, isLemma: boolean) => {
+    const call = `${tactic.className}(${args.join(", ")})`;
+    dispatch(applyTactic({ nodeId, tactic: call, isLemma }));
     setOpen(false);
   };
 
@@ -112,8 +109,7 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
                       setItemType("tactic");
 
                       if (t.arguments.length === 0) {
-                        setSelected(t);
-                        apply();
+                        apply(t, false);
                         return;
                       }
 
@@ -139,8 +135,7 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
                       setItemType("lemma");
                       setArgs([]);
                       if (l.arguments.length === 0) {
-                        setSelected(l);
-                        apply();
+                        apply(l, true);
                         return;
                       }
                       setSelected(l);
@@ -193,7 +188,11 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
               </div>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => setStep("select")}
+                  onClick={() => {
+                    setStep("select");
+                    setSelected(undefined);
+                    setArgs([]);
+                  }}
                   className="w-full"
                   variant="outline"
                   size="xs"
@@ -201,7 +200,7 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
                   <LatexString latex="<-" /> back
                 </Button>
                 <Button
-                  onClick={apply}
+                  onClick={() => apply(selected, itemType === "lemma")}
                   disabled={args.length === 0 || args[0] === ""}
                   className="w-full"
                   variant="primary"

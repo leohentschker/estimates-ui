@@ -1,16 +1,12 @@
 import { Handle, Position } from "@xyflow/react";
 import classNames from "classnames";
-import { useMemo } from "react";
 import { selectGoal } from "../../../features/proof/proofSlice";
 import { selectProofComplete } from "../../../features/pyodide/pyodideSlice";
 import { useAppSelector } from "../../../store";
-import LatexString from "../LatexString";
+import RenderedNodeText from "./RenderedNodeText";
 
 export default function GoalNode({ id }: { id: string }) {
   const goal = useAppSelector(selectGoal);
-  const goalLatex = useMemo(() => {
-    return `${goal.input}`;
-  }, [goal]);
   const isProofComplete = useAppSelector(selectProofComplete);
 
   return (
@@ -24,7 +20,7 @@ export default function GoalNode({ id }: { id: string }) {
           },
         )}
       >
-        <LatexString latex={goalLatex} />
+        <RenderedNodeText text={goal.input} />
       </div>
       <Handle type="target" position={Position.Top} id={`${id}-top`} />
     </>
