@@ -15,6 +15,10 @@ import {
 } from "../../features/proof/proofSlice";
 import { selectNodes } from "../../features/proof/proofSlice";
 import {
+  selectLoading,
+  selectPyodideLoaded,
+} from "../../features/pyodide/pyodideSlice";
+import {
   GOAL_NODE_TYPE,
   TACTIC_EDGE_TYPE,
   TACTIC_NODE_TYPE,
@@ -31,6 +35,8 @@ export default function VisualEditor(): React.ReactElement {
 
   const nodes = useAppSelector(selectNodes);
   const edges = useAppSelector(selectEdges);
+  const pyodideLoaded = useAppSelector(selectPyodideLoaded);
+  const pyodideLoading = useAppSelector(selectLoading);
 
   const nodeTypes: NodeTypes = {
     [GOAL_NODE_TYPE]: GoalNode,
@@ -40,6 +46,17 @@ export default function VisualEditor(): React.ReactElement {
   const edgeTypes: EdgeTypes = {
     [TACTIC_EDGE_TYPE]: TacticEdge,
   };
+
+  if (pyodideLoading || !pyodideLoaded) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" />
+          <span className="ml-2 text-indigo-600">Initializing builder...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 relative">
