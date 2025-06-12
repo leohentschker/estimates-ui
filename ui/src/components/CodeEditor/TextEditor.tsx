@@ -1,9 +1,9 @@
-import AceEditor from 'react-ace';
+import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/theme-tomorrow";
 import "ace-builds/src-noconflict/ext-language_tools";
-import { useAppDispatch, useAppSelector } from '../../store';
-import { selectCode, setCode } from '../../features/pyodide/pyodideSlice';
+import { selectCode, setCode } from "../../features/pyodide/pyodideSlice";
+import { useAppDispatch, useAppSelector } from "../../store";
 
 export default function TextEditor() {
   const code = useAppSelector(selectCode);
@@ -15,12 +15,12 @@ export default function TextEditor() {
       theme="tomorrow"
       name="UNIQUE_ID_OF_DIV"
       editorProps={{ $blockScrolling: true }}
-      onChange={code => dispatch(setCode(code))}
+      onChange={(code) => dispatch(setCode(code))}
       value={code}
-      height='100%'
-      width='100%'
+      height="100%"
+      width="100%"
       fontSize={14}
       lineHeight={20}
     />
-  )
+  );
 }

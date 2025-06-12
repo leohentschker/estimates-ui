@@ -1,17 +1,24 @@
-import Dagre from 'dagre';
-import { Edge, Node } from '@xyflow/react';
-export const layoutGraphElements = (nodes: Node[], edges: Edge[], options: any) => {
+import type { Edge, Node } from "@xyflow/react";
+import Dagre from "dagre";
+
+export const layoutGraphElements = (
+  nodes: Node[],
+  edges: Edge[],
+  options: { direction: string },
+) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   g.setGraph({ rankdir: options.direction, nodesep: 500, ranksep: 150 });
 
-  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
-  nodes.forEach((node) =>
+  for (const edge of edges) {
+    g.setEdge(edge.source, edge.target);
+  }
+  for (const node of nodes) {
     g.setNode(node.id, {
       ...node,
       width: node.measured?.width ?? 0,
       height: node.measured?.height ?? 0,
-    }),
-  );
+    });
+  }
   Dagre.layout(g);
   return {
     nodes: nodes.map((node) => {

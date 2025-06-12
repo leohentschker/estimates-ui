@@ -1,29 +1,30 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { RootState } from '../../store';
-
+import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
+import type { RootState } from "../../store";
 
 const isMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  );
+};
 
 interface UISlice {
   showTutorial: boolean;
   showCode: boolean;
-  mode: 'assumptions' | 'tactics';
-  executionMode: 'auto' | 'manual';
+  mode: "assumptions" | "tactics";
+  executionMode: "auto" | "manual";
   isMobile: boolean;
 }
 
 const initialState: UISlice = {
   showTutorial: false,
   showCode: true,
-  mode: 'assumptions',
-  executionMode: 'auto',
+  mode: "assumptions",
+  executionMode: "auto",
   isMobile: isMobile(),
 };
 
 const uiSlice = createSlice({
-  name: 'ui',
+  name: "ui",
   initialState,
   reducers: {
     setShowTutorial: (state, action: PayloadAction<boolean>) => {
@@ -32,16 +33,17 @@ const uiSlice = createSlice({
     setShowCode: (state, action: PayloadAction<boolean>) => {
       state.showCode = action.payload;
     },
-    setMode: (state, action: PayloadAction<'assumptions' | 'tactics'>) => {
+    setMode: (state, action: PayloadAction<"assumptions" | "tactics">) => {
       state.mode = action.payload;
     },
-    setExecutionMode: (state, action: PayloadAction<'auto' | 'manual'>) => {
+    setExecutionMode: (state, action: PayloadAction<"auto" | "manual">) => {
       state.executionMode = action.payload;
     },
-  }
+  },
 });
 
-export const { setShowTutorial, setShowCode, setMode, setExecutionMode } = uiSlice.actions;
+export const { setShowTutorial, setShowCode, setMode, setExecutionMode } =
+  uiSlice.actions;
 
 export const selectShowTutorial = (state: RootState) => state.ui.showTutorial;
 export const selectShowCode = (state: RootState) => state.ui.showCode;

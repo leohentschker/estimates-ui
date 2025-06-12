@@ -1,19 +1,19 @@
-import { PenTool, FileLineChartIcon } from "lucide-react";
-import { Button } from "./Button";
-import { useAppDispatch, useAppSelector } from "../store";
+import { FileLineChartIcon, PenTool } from "lucide-react";
 import { selectMode, setMode } from "../features/ui/uiSlice";
+import { useAppDispatch, useAppSelector } from "../store";
+import { Button } from "./Button";
 import { TypographyH2 } from "./Typography";
 
 function ModeSwitcherButton({
   active,
   icon,
   label,
-  onClick
+  onClick,
 }: {
-  active: boolean,
-  icon: React.ReactNode,
-  label: string,
-  onClick: () => void
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
 }): React.ReactElement {
   return (
     <Button
@@ -25,7 +25,7 @@ function ModeSwitcherButton({
       <span className="mr-1">{icon}</span>
       {label}
     </Button>
-  )
+  );
 }
 
 export default function ModeSwitcher(): React.ReactElement {

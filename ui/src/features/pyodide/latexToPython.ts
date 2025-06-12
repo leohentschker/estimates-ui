@@ -1,69 +1,72 @@
 const LATEX_TO_PYTHON_REPLACEMENTS = [
   {
     latexRegex: /\\lor/g,
-    replacement: '|'
+    replacement: "|",
   },
   {
     latexRegex: /\\land/g,
-    replacement: '&'
+    replacement: "&",
   },
   {
     latexRegex: /\\neg/g,
-    replacement: '~'
+    replacement: "~",
   },
   {
     latexRegex: /\\implies/g,
-    replacement: '->'
+    replacement: "->",
   },
   {
     latexRegex: /\\iff/g,
-    replacement: '<->'
+    replacement: "<->",
   },
   {
     latexRegex: /\\exists/g,
-    replacement: 'exists'
+    replacement: "exists",
   },
   {
     latexRegex: /\\forall/g,
-    replacement: 'forall'
+    replacement: "forall",
   },
   {
     latexRegex: /\\in/g,
-    replacement: 'in'
+    replacement: "in",
   },
   {
     latexRegex: /\\cup/g,
-    replacement: 'union'
+    replacement: "union",
   },
   {
     latexRegex: /\\cap/g,
-    replacement: 'intersection'
+    replacement: "intersection",
   },
 ];
 
 const PYTHON_TO_LATEX_REPLACEMENTS = [
   {
     pythonRegex: /\|/g,
-    replacement: '\\lor'
+    replacement: "\\lor",
   },
   {
     pythonRegex: /&/g,
-    replacement: '\\land'
+    replacement: "\\land",
   },
   {
     pythonRegex: /~/,
-    replacement: '\\neg'
+    replacement: "\\neg",
   },
   {
     pythonRegex: /->/,
-    replacement: '\\implies'
+    replacement: "\\implies",
   },
 ];
 
 export const latexToPython = (latex: string) => {
   let newLatex = latex;
   for (const replacement of LATEX_TO_PYTHON_REPLACEMENTS) {
-    newLatex = newLatex.replace(replacement.latexRegex, replacement.replacement);
+    newLatex = newLatex.replace(
+      replacement.latexRegex,
+      replacement.replacement,
+    );
   }
   return newLatex;
 };
@@ -71,7 +74,10 @@ export const latexToPython = (latex: string) => {
 export const pythonToLatex = (python: string) => {
   let newPython = python;
   for (const replacement of PYTHON_TO_LATEX_REPLACEMENTS) {
-    newPython = newPython.replace(replacement.pythonRegex, replacement.replacement);
+    newPython = newPython.replace(
+      replacement.pythonRegex,
+      replacement.replacement,
+    );
   }
   return newPython;
 };

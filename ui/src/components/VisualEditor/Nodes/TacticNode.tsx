@@ -1,16 +1,16 @@
 import { Handle, Position } from "@xyflow/react";
-import TacticPopover from "./TacticPopover";
-import { useAppSelector } from "../../../store";
 import { selectEdges } from "../../../features/proof/proofSlice";
+import { useAppSelector } from "../../../store";
+import TacticPopover from "./TacticPopover";
 
 export default function TacticNode({
   id,
-  data
+  data,
 }: {
-  id: string,
+  id: string;
   data: {
     label: string;
-  }
+  };
 }) {
   const simplifiedResult = data.label;
 
@@ -19,39 +19,33 @@ export default function TacticNode({
   const hasInboundEdges = edges.some((edge) => edge.target === id);
 
   return (
-    <div className='flex flex-col gap-2'>
-      {hasInboundEdges && <Handle type="target" position={Position.Top} id={`${id}-top`} />}
-      {
-        simplifiedResult ? (
-          <div className="border border-gray-300 rounded-md p-2 items-center justify-center text-center">
-            <span className="text-xs max-w-16">
-              {simplifiedResult}
-            </span>
+    <div className="flex flex-col gap-2">
+      {hasInboundEdges && (
+        <Handle type="target" position={Position.Top} id={`${id}-top`} />
+      )}
+      {simplifiedResult ? (
+        <div className="border border-gray-300 rounded-md p-2 items-center justify-center text-center">
+          <span className="text-xs max-w-16">{simplifiedResult}</span>
+        </div>
+      ) : (
+        // loading state
+        <div className="border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center">
+          <div className="animate-pulse flex flex-col gap-2">
+            <div className="h-2 bg-gray-200 rounded w-3/4" />
+            <div className="h-2 bg-gray-200 rounded w-1/2" />
           </div>
-        ) : (
-          // loading state
-          <div className="border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center">
-            <div className="animate-pulse flex flex-col gap-2">
-              <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-2 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          </div>
-        )
-      }
-      {
-        outboundEdge && (
-          <Handle
-            type="source"
-            position={Position.Bottom}
-            id={`${id}-tactic-bottom`}
-          />
-        )
-      }
-      {
-        (!outboundEdge || outboundEdge.data?.tactic === 'sorry') && (
-          <TacticPopover nodeId={id} />
-        )
-      }
+        </div>
+      )}
+      {outboundEdge && (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id={`${id}-tactic-bottom`}
+        />
+      )}
+      {(!outboundEdge || outboundEdge.data?.tactic === "sorry") && (
+        <TacticPopover nodeId={id} />
+      )}
     </div>
   );
 }

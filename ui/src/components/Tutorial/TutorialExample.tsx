@@ -1,11 +1,23 @@
-import { useAppDispatch, useAppSelector } from "../../store";
-import { Goal, loadProblem, Variable, Relation, applyTactic, selectNodes, addVariables, selectVariables, setVariables, setAssumptions, setGoal } from "../../features/proof/proofSlice";
-import { Button } from "../Button";
-import { selectProofComplete } from "../../features/pyodide/pyodideSlice";
+import classNames from "classnames";
 import { useMemo } from "react";
+import {
+  type Goal,
+  type Relation,
+  type Variable,
+  addVariables,
+  applyTactic,
+  loadProblem,
+  selectNodes,
+  selectVariables,
+  setAssumptions,
+  setGoal,
+  setVariables,
+} from "../../features/proof/proofSlice";
+import { selectProofComplete } from "../../features/pyodide/pyodideSlice";
 import { selectIsMobile, setMode } from "../../features/ui/uiSlice";
 import { GOAL_NODE_ID } from "../../metadata/graph";
-import classNames from "classnames";
+import { useAppDispatch, useAppSelector } from "../../store";
+import { Button } from "../Button";
 
 export default function TutorialExample({
   lines,
@@ -20,11 +32,11 @@ export default function TutorialExample({
     variables: Variable[];
     assumptions: Relation[];
     goal: Goal;
-  }
+  };
   tactic?: {
     target: string;
-    position: 'last';
-  }
+    position: "last";
+  };
   variables?: Variable[];
   assumptions?: Relation[];
   goal?: Goal;
@@ -40,111 +52,123 @@ export default function TutorialExample({
       return null;
     }
     const nonGoalNodes = nodes.filter((node) => node.id !== GOAL_NODE_ID);
-    if (tactic.position === 'last') {
+    if (tactic.position === "last") {
       return nonGoalNodes[nonGoalNodes.length - 1];
     }
   }, [tactic, nodes]);
 
   return (
     <div className="relative">
-      {
-        problem && (
-          <Button
-            className={classNames(
-              "absolute top-2 right-2 text-sm text-gray-800",
-              isMobile ? "block" : "hidden md:block"
-            )}
-            onClick={() => {
-              appDispatch(loadProblem(problem));
-              const target = targetNode?.id;
-              if (!target) {
-                return;
-              }
-              if (tactic) {
-                appDispatch(applyTactic({ nodeId: target, tactic: tactic.target, isLemma: false }));
-              }
-              appDispatch(setMode('tactics'));
-            }}>
-            Load problem
-          </Button>
-        )
-      }
-      {
-        tactic && !problem && (
-          <Button
-            className={classNames(
-              "absolute top-2 right-2 text-sm text-gray-800",
-              isMobile ? "block" : "hidden md:block"
-            )}
-            onClick={() => {
-              const target = targetNode?.id;
-              if (!target) {
-                return;
-              }
-              appDispatch(applyTactic({ nodeId: target, tactic: tactic.target, isLemma: false }));
-              appDispatch(setMode('tactics'));
-            }}
-            disabled={proofSolved}
-          >
-            Apply tactic
-          </Button>
-        )
-      }
-      {
-        variables && (
-          <Button
-            className={classNames(
-              "absolute top-2 right-2 text-sm text-gray-800",
-              isMobile ? "block" : "hidden md:block"
-            )}
-            onClick={() => {
-              if (existingVariables.filter((variable) => variable.name).length > 0) {
-                appDispatch(addVariables(variables));
-              } else {
-                appDispatch(setVariables(variables));
-              }
-            }}
-            disabled={proofSolved}
-          >
-            Add variables
-          </Button>
-        )
-      }
-      {
-        assumptions && (
-          <Button
-            className={classNames(
-              "absolute top-2 right-2 text-sm text-gray-800",
-              isMobile ? "block" : "hidden md:block"
-            )}
-            onClick={() => {
-              appDispatch(setAssumptions(assumptions));
-            }}
-            disabled={proofSolved}
-          >
-            Add assumptions
-          </Button>
-        )
-      }
-      {
-        goal && (
-          <Button
-            className={classNames(
-              "absolute top-2 right-2 text-sm text-gray-800",
-              isMobile ? "block" : "hidden md:block"
-            )}
-            onClick={() => {
-              appDispatch(setGoal(goal));
-            }}
-            disabled={proofSolved}
-          >
-            Add goal
-          </Button>
-        )
-      }
+      {problem && (
+        <Button
+          className={classNames(
+            "absolute top-2 right-2 text-sm text-gray-800",
+            isMobile ? "block" : "hidden md:block",
+          )}
+          onClick={() => {
+            appDispatch(loadProblem(problem));
+            const target = targetNode?.id;
+            if (!target) {
+              return;
+            }
+            if (tactic) {
+              appDispatch(
+                applyTactic({
+                  nodeId: target,
+                  tactic: tactic.target,
+                  isLemma: false,
+                }),
+              );
+            }
+            appDispatch(setMode("tactics"));
+          }}
+        >
+          Load problem
+        </Button>
+      )}
+      {tactic && !problem && (
+        <Button
+          className={classNames(
+            "absolute top-2 right-2 text-sm text-gray-800",
+            isMobile ? "block" : "hidden md:block",
+          )}
+          onClick={() => {
+            const target = targetNode?.id;
+            if (!target) {
+              return;
+            }
+            appDispatch(
+              applyTactic({
+                nodeId: target,
+                tactic: tactic.target,
+                isLemma: false,
+              }),
+            );
+            appDispatch(setMode("tactics"));
+          }}
+          disabled={proofSolved}
+        >
+          Apply tactic
+        </Button>
+      )}
+      {variables && (
+        <Button
+          className={classNames(
+            "absolute top-2 right-2 text-sm text-gray-800",
+            isMobile ? "block" : "hidden md:block",
+          )}
+          onClick={() => {
+            if (
+              existingVariables.filter((variable) => variable.name).length > 0
+            ) {
+              appDispatch(addVariables(variables));
+            } else {
+              appDispatch(setVariables(variables));
+            }
+          }}
+          disabled={proofSolved}
+        >
+          Add variables
+        </Button>
+      )}
+      {assumptions && (
+        <Button
+          className={classNames(
+            "absolute top-2 right-2 text-sm text-gray-800",
+            isMobile ? "block" : "hidden md:block",
+          )}
+          onClick={() => {
+            appDispatch(setAssumptions(assumptions));
+          }}
+          disabled={proofSolved}
+        >
+          Add assumptions
+        </Button>
+      )}
+      {goal && (
+        <Button
+          className={classNames(
+            "absolute top-2 right-2 text-sm text-gray-800",
+            isMobile ? "block" : "hidden md:block",
+          )}
+          onClick={() => {
+            appDispatch(setGoal(goal));
+          }}
+          disabled={proofSolved}
+        >
+          Add goal
+        </Button>
+      )}
       <pre>
         <code>
-          {lines.map((line) => (line.replace(/\&lt;/g, '<').replace(/\&gt;/g, '>').replace(/\&amp;/g, '&'))).join('\n')}
+          {lines
+            .map((line) =>
+              line
+                .replace(/\&lt;/g, "<")
+                .replace(/\&gt;/g, ">")
+                .replace(/\&amp;/g, "&"),
+            )
+            .join("\n")}
         </code>
       </pre>
     </div>
