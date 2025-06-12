@@ -1,4 +1,8 @@
-import { loadPyodide, version as pyodideVersion, PyodideInterface } from "pyodide";
+import {
+  type PyodideInterface,
+  loadPyodide,
+  version as pyodideVersion,
+} from "pyodide";
 
 async function initPyodide({
   stdout = (message: string) => console.log(message),
@@ -19,7 +23,7 @@ export async function loadAndRunPyodide({
 }): Promise<PyodideInterface | undefined> {
   try {
     const pyodide = await initPyodide({
-      stdout
+      stdout,
     });
     await pyodide.loadPackage("micropip");
     await pyodide.runPythonAsync(`
@@ -35,7 +39,7 @@ export async function loadAndRunPyodide({
         await z3._init()
         await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
     `);
-    console.log('Completed installations');
+    console.log("Completed installations");
     return pyodide;
   } catch (error) {
     console.error(error);

@@ -19,7 +19,7 @@ export default function TopBarButton({
       onClick={onClick}
     >
       <span className="mr-1">{icon}</span>
-      <span className={classNames({ 'hidden md:block': !active })}>
+      <span className={classNames({ "hidden md:block": !active })}>
         {label}
       </span>
     </Button>

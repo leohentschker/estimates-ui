@@ -1,27 +1,41 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
-import type { RootState } from '../../store'
-import { applyEdgeChanges, applyNodeChanges, Edge, EdgeChange, Node, NodeChange } from '@xyflow/react'
-import { v4 as uuidv4 } from 'uuid';
-import { runProofCode } from '../pyodide/pyodideSlice';
-import { GOAL_NODE_TYPE, TACTIC_NODE_TYPE, TACTIC_EDGE_TYPE, SORRY_TACTIC, GOAL_NODE_ID } from '../../metadata/graph';
-import { VariableType } from '../../metadata/variables';
-import { layoutGraphElements } from './dagre';
-import type { WritableDraft } from 'immer';
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import {
+  type Edge,
+  type EdgeChange,
+  type Node,
+  type NodeChange,
+  applyEdgeChanges,
+  applyNodeChanges,
+} from "@xyflow/react";
+import type { WritableDraft } from "immer";
+import { v4 as uuidv4 } from "uuid";
+import {
+  GOAL_NODE_ID,
+  GOAL_NODE_TYPE,
+  SORRY_TACTIC,
+  TACTIC_EDGE_TYPE,
+  TACTIC_NODE_TYPE,
+} from "../../metadata/graph";
+import type { VariableType } from "../../metadata/variables";
+import type { RootState } from "../../store";
+import { runProofCode } from "../pyodide/pyodideSlice";
+import { CODE_EDIT_MODE } from "../ui/uiSlice";
+import { layoutGraphElements } from "./dagre";
 
 export type Variable = {
   name: string;
   type: VariableType;
-}
+};
 
 export type Relation = {
   input: string;
   name: string;
-}
+};
 
 export type Goal = {
   input: string;
-}
+};
 
 interface ProofState {
   nodes: Node[];
@@ -36,35 +50,35 @@ const initialState: ProofState = {
   edges: [],
   variables: [
     {
-      name: 'x',
-      type: 'nonneg_real'
+      name: "x",
+      type: "nonneg_real",
     },
     {
-      name: 'y',
-      type: 'nonneg_real'
+      name: "y",
+      type: "nonneg_real",
     },
     {
-      name: 'z',
-      type: 'nonneg_real'
-    }
+      name: "z",
+      type: "nonneg_real",
+    },
   ],
   assumptions: [
     {
-      input: 'x < 2*y',
-      name: 'h1'
+      input: "x < 2*y",
+      name: "h1",
     },
     {
-      input: 'y < 3*z + 1',
-      name: 'h2'
-    }
+      input: "y < 3*z + 1",
+      name: "h2",
+    },
   ],
   goal: {
-    input: 'x < 7 * z + 2',
-  }
+    input: "x < 7 * z + 2",
+  },
 };
 
 export const proofSlice = createSlice({
-  name: 'proof',
+  name: "proof",
   initialState,
   reducers: {
     setNodes: (state, action: PayloadAction<Node[]>) => {
@@ -102,80 +116,44 @@ export const proofSlice = createSlice({
         return;
       }
 
-      const otherEdgesToRemove = state.edges.filter((e) => edgeToRemove?.data?.resolutionId && e.data?.resolutionId === edgeToRemove?.data?.resolutionId);
-      const edgeIdsToRemove = [...otherEdgesToRemove, edgeToRemove].map((e) => e?.id);
+      const otherEdgesToRemove = state.edges.filter(
+        (e) =>
+          edgeToRemove?.data?.resolutionId &&
+          e.data?.resolutionId === edgeToRemove?.data?.resolutionId,
+      );
+      const edgeIdsToRemove = [...otherEdgesToRemove, edgeToRemove].map(
+        (e) => e?.id,
+      );
 
       const target = state.nodes.find((n) => n.id === edgeToRemove?.target);
-      const newEdges = state.edges.filter((e) => !edgeIdsToRemove.includes(e.id));
+      const newEdges = state.edges.filter(
+        (e) => !edgeIdsToRemove.includes(e.id),
+      );
       const newNodes = state.nodes.filter((n) => n.id !== target?.id);
 
-      state.edges = [...newEdges, {
-        id: uuidv4(),
-        source: edgeSource,
-        target: GOAL_NODE_ID,
-        type: TACTIC_EDGE_TYPE,
-        data: { tactic: SORRY_TACTIC },
-        animated: true,
-      }];
-      state.nodes = newNodes;
-    },
-    handleProofIncomplete: (state) => {
-      const sorryEdge = state.edges.find((edge) => edge.data?.tactic === SORRY_TACTIC);
-      if (sorryEdge) {
-        return;
-      }
-      const winEdge = state.edges.find((edge) => edge.data?.tactic === 'win');
-      if (!winEdge) {
-        return;
-      }
-      const newEdges = [
-        ...state.edges.filter((edge) => edge.id !== winEdge?.id),
+      state.edges = [
+        ...newEdges,
         {
           id: uuidv4(),
-          source: winEdge.source,
-          target: winEdge.target,
+          source: edgeSource,
+          target: GOAL_NODE_ID,
           type: TACTIC_EDGE_TYPE,
           data: { tactic: SORRY_TACTIC },
           animated: true,
-        }
+        },
       ];
-      state.edges = newEdges;
-    },
-    handleProofComplete: (state) => {
-      const sorryEdge = state.edges.find((edge) => edge.data?.tactic === SORRY_TACTIC);
-      const winningTacticNode = state.nodes.find((node) => node.id === sorryEdge?.source);
-      if (!winningTacticNode) {
-        return;
-      }
-      const edgeIntoWinningTacticNode = state.edges.find((edge) => edge.target === winningTacticNode?.id);
-      if (!edgeIntoWinningTacticNode) {
-        return;
-      }
-
-      const nodeBeforeWinningTacticNode = state.nodes.find((node) => node.id === edgeIntoWinningTacticNode?.source);
-      if (!nodeBeforeWinningTacticNode) {
-        return;
-      }
-
-      const newEdges = [
-        ...state.edges.filter((edge) => edge.id !== sorryEdge?.id && edge.id !== edgeIntoWinningTacticNode?.id),
-        {
-          id: uuidv4(),
-          source: nodeBeforeWinningTacticNode.id,
-          target: GOAL_NODE_ID,
-          type: TACTIC_EDGE_TYPE,
-          data: { tactic: edgeIntoWinningTacticNode.data?.tactic },
-        }
-      ];
-      state.edges = newEdges;
-      state.nodes = state.nodes.filter((node) => node.id !== winningTacticNode?.id);
+      state.nodes = newNodes;
     },
     resetProof: (state) => {
-      const sourceNode = state.nodes.find((node) => !state.edges.some((edge) => edge.target === node.id));
+      const sourceNode = state.nodes.find(
+        (node) => !state.edges.some((edge) => edge.target === node.id),
+      );
       if (!sourceNode) {
         return;
       }
-      const sinkNode = state.nodes.find((node) => !state.edges.some((edge) => edge.source === node.id));
+      const sinkNode = state.nodes.find(
+        (node) => !state.edges.some((edge) => edge.source === node.id),
+      );
       if (!sinkNode) {
         return;
       }
@@ -187,51 +165,60 @@ export const proofSlice = createSlice({
           target: sinkNode.id,
           type: TACTIC_EDGE_TYPE,
           data: { tactic: SORRY_TACTIC },
-        }
+        },
       ];
     },
-    loadProblem: (state, action: PayloadAction<{
-      variables: Variable[];
-      assumptions: Relation[];
-      goal: Goal;
-    }>) => {
+    loadProblem: (
+      state,
+      action: PayloadAction<{
+        variables: Variable[];
+        assumptions: Relation[];
+        goal: Goal;
+      }>,
+    ) => {
       state.nodes = initialState.nodes as WritableDraft<Node[]>;
       state.edges = initialState.edges;
       state.variables = action.payload.variables;
       state.assumptions = action.payload.assumptions;
       state.goal = action.payload.goal;
     },
-    applyTactic: (state, action: PayloadAction<{
-      nodeId: string;
-      tactic: string;
-      isLemma: boolean;
-    }>) => {
+    applyTactic: (
+      state,
+      action: PayloadAction<{
+        nodeId: string;
+        tactic: string;
+        isLemma: boolean;
+      }>,
+    ) => {
       const newNodeId = uuidv4();
-      const newNodes = [...state.nodes, {
-        id: newNodeId,
-        data: {
-          selected: true,
-          isLemma: action.payload.isLemma,
+      const newNodes = [
+        ...state.nodes,
+        {
+          id: newNodeId,
+          data: {
+            selected: true,
+            isLemma: action.payload.isLemma,
+          },
+          type: TACTIC_NODE_TYPE,
+          position: { x: 0, y: 0 },
+          deletable: false,
         },
-        type: TACTIC_NODE_TYPE,
-        position: { x: 0, y: 0 },
-        deletable: false
-      }];
+      ];
 
       const newEdgeId = uuidv4();
       const newEdges = [
         // remove edges coming out of node we're applying tactic to
-        ...state.edges.filter(edge => edge.source !== action.payload.nodeId),
+        ...state.edges.filter((edge) => edge.source !== action.payload.nodeId),
         {
           id: newEdgeId,
           source: newNodeId,
           target: GOAL_NODE_ID,
           type: TACTIC_EDGE_TYPE,
           data: {
-            tactic: SORRY_TACTIC
+            tactic: SORRY_TACTIC,
           },
           animated: true,
-          deletable: false
+          deletable: false,
         },
         {
           id: uuidv4(),
@@ -241,17 +228,21 @@ export const proofSlice = createSlice({
           data: {
             tactic: action.payload.tactic,
             isLemma: action.payload.isLemma,
-            resolved: false
+            resolved: false,
           },
-          deletable: false
-        }
+          deletable: false,
+        },
       ];
-      const layoutResult = layoutGraphElements(newNodes, newEdges, { direction: 'TB' });
+      const layoutResult = layoutGraphElements(newNodes, newEdges, {
+        direction: "TB",
+      });
       state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     },
     fixLayout: (state) => {
-      const layoutResult = layoutGraphElements(state.nodes, state.edges, { direction: 'TB' });
+      const layoutResult = layoutGraphElements(state.nodes, state.edges, {
+        direction: "TB",
+      });
       state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     },
@@ -264,15 +255,34 @@ export const proofSlice = createSlice({
       if (!action.payload) {
         return;
       }
-      const { result: pyodideResult, error: pyodideError } = action.payload;
+      const {
+        result: pyodideResult,
+        error: pyodideError,
+        editMode,
+      } = action.payload;
+
+      if (editMode === CODE_EDIT_MODE) {
+        return;
+      }
+
       if (!pyodideResult || pyodideError) {
         return;
       }
       if (pyodideResult.error) {
         return;
       }
-      const pyodideNodes = pyodideResult.output.nodes as { id: string, label: string, tactic: string, sorry_free: boolean }[];
-      const pyodideEdges = pyodideResult.output.edges as { id: string, source: string, target: string, label: string }[];
+      const pyodideNodes = pyodideResult.output?.nodes as {
+        id: string;
+        label: string;
+        tactic: string;
+        sorry_free: boolean;
+      }[];
+      const pyodideEdges = pyodideResult.output?.edges as {
+        id: string;
+        source: string;
+        target: string;
+        label: string;
+      }[];
 
       const flowEdges: Edge[] = [];
       const flowNodes: Node[] = [];
@@ -281,13 +291,13 @@ export const proofSlice = createSlice({
           id: n.id,
           position: {
             x: 0,
-            y: 0
+            y: 0,
           },
           deletable: false,
           type: TACTIC_NODE_TYPE,
           data: {
             label: n.label,
-          }
+          },
         });
         const edgesFromNode = pyodideEdges.filter((e) => e.source === n.id);
 
@@ -300,8 +310,11 @@ export const proofSlice = createSlice({
               source: n.id,
               target: GOAL_NODE_ID,
               type: TACTIC_EDGE_TYPE,
-              data: { tactic: existingNodeEdge?.data?.tactic || n.tactic, resolved: true },
-              deletable: false
+              data: {
+                tactic: existingNodeEdge?.data?.tactic || n.tactic,
+                resolved: true,
+              },
+              deletable: false,
             });
           } else {
             flowEdges.push({
@@ -311,20 +324,32 @@ export const proofSlice = createSlice({
               type: TACTIC_EDGE_TYPE,
               data: { tactic: SORRY_TACTIC, resolved: true },
               animated: true,
-              deletable: false
+              deletable: false,
             });
           }
         }
       }
 
-      const unresolvedEdge = state.edges.find(e => e.data?.resolved === false);
+      const unresolvedEdge = state.edges.find(
+        (e) => e.data?.resolved === false,
+      );
       const resolutionId = uuidv4();
       for (const e of pyodideEdges) {
         const edgeId = `${e.source}_${e.target}`;
-        const existingEdge = state.edges.find((edge) => edge.id === `${e.source}_${e.target}`);
+        const existingEdge = state.edges.find(
+          (edge) => edge.id === `${e.source}_${e.target}`,
+        );
 
-        const tactic = existingEdge ? existingEdge?.data?.tactic : unresolvedEdge ? unresolvedEdge?.data?.tactic : e.label;
-        const isLemma = existingEdge ? existingEdge?.data?.isLemma : unresolvedEdge ? unresolvedEdge?.data?.isLemma : false;
+        const tactic = existingEdge
+          ? existingEdge?.data?.tactic
+          : unresolvedEdge
+            ? unresolvedEdge?.data?.tactic
+            : e.label;
+        const isLemma = existingEdge
+          ? existingEdge?.data?.isLemma
+          : unresolvedEdge
+            ? unresolvedEdge?.data?.isLemma
+            : false;
 
         flowEdges.push({
           id: edgeId,
@@ -332,7 +357,7 @@ export const proofSlice = createSlice({
           target: e.target,
           type: TACTIC_EDGE_TYPE,
           data: { tactic, resolutionId, isLemma },
-          deletable: false
+          deletable: false,
         });
       }
 
@@ -340,15 +365,17 @@ export const proofSlice = createSlice({
         id: GOAL_NODE_ID,
         position: {
           x: 0,
-          y: 0
+          y: 0,
         },
         deletable: false,
         type: GOAL_NODE_TYPE,
         data: {
           label: state.goal.input,
-        }
+        },
       });
-      const layoutResult = layoutGraphElements(flowNodes, flowEdges, { direction: 'TB' });
+      const layoutResult = layoutGraphElements(flowNodes, flowEdges, {
+        direction: "TB",
+      });
       state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     });
@@ -361,8 +388,6 @@ export const {
   onNodesChange,
   onEdgesChange,
   removeEdge,
-  handleProofComplete,
-  handleProofIncomplete,
   resetProof,
   addAssumption,
   loadProblem,
@@ -376,10 +401,12 @@ export const {
 
 export const selectNodes = (state: RootState) => state.proof.nodes;
 export const selectEdges = (state: RootState) => state.proof.edges;
-export const selectNodeById = (id: string) => (state: RootState) => state.proof.nodes.find((node) => node.id === id);
-export const selectEdgesFromNode = (id: string) => (state: RootState) => state.proof.edges.filter((edge) => edge.source === id);
+export const selectNodeById = (id: string) => (state: RootState) =>
+  state.proof.nodes.find((node) => node.id === id);
+export const selectEdgesFromNode = (id: string) => (state: RootState) =>
+  state.proof.edges.filter((edge) => edge.source === id);
 export const selectVariables = (state: RootState) => state.proof.variables;
 export const selectAssumptions = (state: RootState) => state.proof.assumptions;
 export const selectGoal = (state: RootState) => state.proof.goal;
 
-export default proofSlice.reducer
+export default proofSlice.reducer;

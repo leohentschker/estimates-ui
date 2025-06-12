@@ -1,236 +1,217 @@
+import classNames from "classnames";
 import { useMemo, useState } from "react";
-import LatexString from "../LatexString";
-import { Popover, PopoverContent, PopoverTrigger } from "../../Popover";
+import {
+  applyTactic,
+  selectAssumptions,
+  selectVariables,
+} from "../../../features/proof/proofSlice";
+import {
+  AVAILABLE_LEMMAS,
+  AVAILABLE_TACTICS,
+  type Lemma,
+  type Tactic,
+} from "../../../metadata/tactics";
+import { useAppDispatch, useAppSelector } from "../../../store";
 import { Button } from "../../Button";
 import { Input } from "../../Input";
-import { useAppDispatch, useAppSelector } from "../../../store";
-import { applyTactic, selectAssumptions, selectVariables } from "../../../features/proof/proofSlice";
-import classNames from "classnames";
+import { Popover, PopoverContent, PopoverTrigger } from "../../Popover";
+import LatexString from "../LatexString";
 
-type Tactic = {
-  name: string;
-  value: string;
-  arguments: ('variables' | 'hypotheses' | 'verbose')[];
-}
-export const AVAILABLE_TACTICS: Tactic[] = [
-  { name: 'Linear arithmetic', value: 'Linarith', arguments: ['verbose'] },
-  { name: 'Contrapositive', value: 'Contrapose', arguments: [] },
-  { name: 'Split hypothesis', value: 'SplitHyp', arguments: ['hypotheses'] },
-  { name: 'Cases', value: 'Cases', arguments: ['hypotheses'] },
-  { name: "Simplify", value: "SimpAll", arguments: [] },
-  { name: 'Split goal', value: 'SplitGoal', arguments: [] },
-  { name: 'Log linear arithmetic', value: 'LogLinarith', arguments: [] },
-]
-
-type Lemma = {
-  name: string;
-  arguments: 'expressions';
-  value: string;
-}
-export const AVAILABLE_LEMMAS: Lemma[] = [
-  { name: 'AM-GM Inequality', value: 'Amgm', arguments: 'expressions' },
-]
+type Item = Tactic | Lemma;
+type ItemType = "tactic" | "lemma";
 
 export default function TacticPopover({ nodeId }: { nodeId: string }) {
-  const [tacticSearch, setTacticSearch] = useState('');
-  const [tacticOpen, setTacticOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"select" | "config">("select");
+  const [itemType, setItemType] = useState<ItemType>();
+  const [selected, setSelected] = useState<Item>();
+  const [args, setArgs] = useState<string[]>([]);
 
-  const [tacticSelectStep, setTacticSelectStep] = useState<'select' | 'arguments' | 'lemma'>('select');
-  const [selectedTactic, setSelectedTactic] = useState<Tactic>();
-  const [tacticArguments, setTacticArguments] = useState<string[]>([]);
-  const [selectedLemma, setSelectedLemma] = useState<Lemma>();
-  const [lemmaArguments, setLemmaArguments] = useState<string>('');
   const variables = useAppSelector(selectVariables);
   const hypotheses = useAppSelector(selectAssumptions);
-  const appDispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
 
-  const applyTacticToNode = (nodeId: string, tactic: string) => appDispatch(applyTactic({ nodeId, tactic, isLemma: false }));
-  const applyLemmaToNode = (nodeId: string, lemma: string) => appDispatch(applyTactic({ nodeId, tactic: lemma, isLemma: true }));
+  const apply = () => {
+    if (!selected) return;
+    const call = `${selected.className}(${args.join(", ")})`;
+    dispatch(
+      applyTactic({ nodeId, tactic: call, isLemma: itemType === "lemma" }),
+    );
+    setOpen(false);
+  };
 
+  const tacticOptions = useMemo(
+    () =>
+      AVAILABLE_TACTICS.filter(
+        (t) =>
+          !search ||
+          t.label.toLowerCase().includes(search.toLowerCase()) ||
+          t.description.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [search],
+  );
 
-  const argumentSelectOptions = useMemo(() => {
-    let options: { label: string, value: string }[] = [];
-    if (!selectedTactic) {
-      return [];
-    }
-    if (selectedTactic.arguments.includes('variables')) {
-      options.push(...variables.map(variable => ({ label: variable.name, value: variable.name })));
-    }
-    if (selectedTactic.arguments.includes('hypotheses')) {
-      options.push(...hypotheses.map(hypothesis => ({ label: `${hypothesis.name}: ${hypothesis.input}`, value: hypothesis.name })));
-    }
-    if (selectedTactic.arguments.includes('verbose')) {
-      options.push({ label: 'verbose=True', value: 'verbose=True' }, { label: 'verbose=False', value: 'verbose=False' });
-    }
-    return options;
-  }, [selectedTactic]);
+  const lemmaOptions = useMemo(
+    () =>
+      AVAILABLE_LEMMAS.filter(
+        (l) =>
+          !search ||
+          l.label.toLowerCase().includes(search.toLowerCase()) ||
+          l.description.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [search],
+  );
+
+  const argOptions = useMemo(() => {
+    if (itemType !== "tactic" || !selected) return [];
+    const tac = selected as Tactic;
+    const opts: { label: string; value: string }[] = [];
+    if (tac.arguments.includes("variables"))
+      opts.push(...variables.map((v) => ({ label: v.name, value: v.name })));
+    if (tac.arguments.includes("hypotheses"))
+      opts.push(
+        ...hypotheses.map((h) => ({
+          label: `${h.name}: ${h.input}`,
+          value: h.name,
+        })),
+      );
+    if (tac.arguments.includes("verbose"))
+      opts.push(
+        { label: "verbose=True", value: "verbose=True" },
+        { label: "verbose=False", value: "verbose=False" },
+      );
+    return opts;
+  }, [selected, itemType, variables, hypotheses]);
 
   return (
-    <Popover open={tacticOpen} onOpenChange={setTacticOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
-        <Button variant='outline' size='xs'>
-          <LatexString latex={`+`} /> apply tactic
+        <Button variant="outline" size="xs">
+          <LatexString latex="+" /> apply tactic
         </Button>
       </PopoverTrigger>
       <PopoverContent className="bg-white z-200000">
-        <div className='flex flex-col gap-2'>
+        <div className="flex flex-col gap-2">
+          {step === "select" && (
+            <>
+              <Input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="mb-4"
+              />
+              <div className="text-sm font-bold">Tactics</div>
+              <div className="max-h-40 overflow-y-auto">
+                {tacticOptions.map((t) => (
+                  <button
+                    type="button"
+                    key={t.id}
+                    className="cursor-pointer hover:bg-gray-100 rounded-md p-2"
+                    onClick={() => {
+                      setItemType("tactic");
 
-          {
-            tacticSelectStep === 'select' && (
-              <>
-                <Input
-                  autoFocus
-                  value={tacticSearch}
-                  onChange={(e) => setTacticSearch(e.target.value)}
-                  className="mb-4"
-                />
-                <div className="text-sm font-bold">
-                  Tactics
-                </div>
-                <div className="max-h-40 overflow-y-auto">
-                  {AVAILABLE_TACTICS.filter(tactic => tactic.name.toLowerCase().includes(tacticSearch.toLowerCase())).map(tactic => (
-                    <div
-                      key={tactic.value}
-                      className='cursor-pointer hover:bg-gray-100 rounded-md p-2'
-                      onClick={() => {
-                        const selectedTactic = AVAILABLE_TACTICS.find(availableTactic => availableTactic.name === tactic?.name);
-                        if (!selectedTactic) {
-                          return;
-                        }
-                        if (selectedTactic.arguments.length > 0) {
-                          setTacticSelectStep('arguments');
-                          setSelectedTactic(selectedTactic);
-                        } else {
-                          setTacticOpen(false);
-                          applyTacticToNode(nodeId, `${tactic.value}()`);
-                        }
-                      }}
-                    >
-                      {tactic.name}
-                    </div>
-                  ))}
-                </div>
-                <div className="text-sm font-bold">
-                  Lemmas
-                </div>
-                <div className="overflow-y-auto">
-                  {AVAILABLE_LEMMAS.filter(lemma => lemma.name.toLowerCase().includes(tacticSearch.toLowerCase())).map(lemma => (
-                    <div
-                      key={lemma.name}
-                      className={
-                        classNames(
-                          'cursor-pointer hover:bg-gray-100 rounded-md p-2',
-                          selectedLemma === lemma && 'bg-gray-100'
+                      if (t.arguments.length === 0) {
+                        setSelected(t);
+                        apply();
+                        return;
+                      }
+
+                      setSelected(t);
+                      setArgs([]);
+                      setStep("config");
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <div className="text-sm font-bold">Lemmas</div>
+              <div className="max-h-40 overflow-y-auto">
+                {lemmaOptions.map((l) => (
+                  <button
+                    type="button"
+                    key={l.id}
+                    className={classNames(
+                      "cursor-pointer hover:bg-gray-100 rounded-md p-2",
+                    )}
+                    onClick={() => {
+                      setItemType("lemma");
+                      setArgs([]);
+                      if (l.arguments.length === 0) {
+                        setSelected(l);
+                        apply();
+                        return;
+                      }
+                      setSelected(l);
+                      setStep("config");
+                    }}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {step === "config" && selected && (
+            <>
+              <div>Arguments for {selected.label}</div>
+              <div className="flex flex-col gap-2 py-2">
+                {itemType === "tactic" ? (
+                  argOptions.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt.value}
+                      onClick={() =>
+                        setArgs((prev) =>
+                          prev.includes(opt.value)
+                            ? prev.filter((a) => a !== opt.value)
+                            : [opt.value],
                         )
                       }
-                      onClick={() => {
-                        setSelectedLemma(lemma);
-                        setTacticSelectStep('lemma');
-                        setLemmaArguments('');
-                      }}
+                      className={classNames(
+                        "cursor-pointer hover:bg-gray-100 rounded-md p-2",
+                        args.includes(opt.value) && "bg-gray-100",
+                      )}
                     >
-                      {lemma.name}
-                    </div>
-                  ))}
-
-                </div>
-              </>
-            )
-          }
-
-          {
-            tacticSelectStep === 'lemma' && (
-              <>
-                <div>
-                  Arguments for {selectedLemma?.name}
-                </div>
-                <div className="flex flex-col gap-2 py-5">
+                      {opt.label}
+                    </button>
+                  ))
+                ) : (
                   <div className="flex items-center">
-                    <span>{selectedLemma?.value}(</span>
+                    <span>{selected.className}(</span>
                     <Input
-                      value={lemmaArguments}
-                      onChange={(e) => setLemmaArguments(e.target.value)}
-                      className="col-span-2 mx-2"
+                      value={args[0] || ""}
+                      onChange={(e) => setArgs([e.target.value])}
+                      className="mx-2"
                       placeholder="x**2,y**2"
                     />
                     <span>)</span>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      setTacticSelectStep('select');
-                      setLemmaArguments('');
-                    }}
-                    className="w-full" variant='outline' size='xs'>
-                    <LatexString latex={`<-`} /> back
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      applyLemmaToNode(nodeId, `${selectedLemma?.value}(${lemmaArguments})`);
-                      setTacticOpen(false);
-                    }}
-                    disabled={lemmaArguments.length === 0}
-                    className="w-full" variant='primary' size='xs'
-                  >
-                    <LatexString latex={`+`} /> apply lemma
-                  </Button>
-                </div>
-              </>
-            )
-          }
-
-          {
-            tacticSelectStep === 'arguments' && (
-              <>
-                <div>
-                  Arguments for {selectedTactic?.name}
-                </div>
-                <div className="flex flex-col gap-2">
-                  {
-                    <div>
-                      {argumentSelectOptions.map(argument => (
-                        <div
-                          key={argument.value}
-                          onClick={() => {
-                            setTacticArguments([argument.value]);
-                          }}
-                          className={
-                            classNames(
-                              "cursor-pointer hover:bg-gray-100 rounded-md p-2 w-full",
-                              tacticArguments.includes(argument.value) && 'bg-gray-100'
-                            )
-                          }
-                        >
-                          {argument.label}
-                        </div>
-                      ))}
-                    </div>
-                  }
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => {
-                        setTacticSelectStep('select');
-                        setTacticArguments([]);
-                      }}
-                      className="w-full" variant='outline' size='xs'>
-                      <LatexString latex={`<-`} /> back
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        applyTacticToNode(nodeId, `${selectedTactic?.value}("${tacticArguments.join(', ')}")`);
-                        setTacticOpen(false);
-                      }}
-                      disabled={tacticArguments.length === 0}
-                      className="w-full" variant='primary' size='xs'
-                    >
-                      <LatexString latex={`+`} /> apply tactic
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )
-          }
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setStep("select")}
+                  className="w-full"
+                  variant="outline"
+                  size="xs"
+                >
+                  <LatexString latex="<-" /> back
+                </Button>
+                <Button
+                  onClick={apply}
+                  disabled={args.length === 0 || args[0] === ""}
+                  className="w-full"
+                  variant="primary"
+                  size="xs"
+                >
+                  <LatexString latex="+" /> apply
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </PopoverContent>
     </Popover>

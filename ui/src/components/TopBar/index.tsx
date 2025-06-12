@@ -1,8 +1,14 @@
-import { selectShowTutorial, selectShowCode, setShowCode, setShowTutorial, selectIsMobile } from "../../features/ui/uiSlice";
-import { useAppDispatch, useAppSelector } from "../../store";
 import { BookOpen, Code, Network } from "lucide-react";
-import TopBarButton from "./TopBarButton";
+import {
+  selectIsMobile,
+  selectShowCode,
+  selectShowTutorial,
+  setShowCode,
+  setShowTutorial,
+} from "../../features/ui/uiSlice";
+import { useAppDispatch, useAppSelector } from "../../store";
 import ExecutionButton from "./ExecutionButton";
+import TopBarButton from "./TopBarButton";
 
 export default function TopBar(): React.ReactElement {
   const showTutorials = useAppSelector(selectShowTutorial);
@@ -13,7 +19,6 @@ export default function TopBar(): React.ReactElement {
 
   return (
     <div className="flex border-b border-gray-200 px-4 py-2 items-center justify-between">
-
       {/* Show or hide tutorial and code panels */}
       <div className="flex items-center gap-1 md:gap-2">
         <TopBarButton
@@ -34,19 +39,17 @@ export default function TopBar(): React.ReactElement {
             if (isMobile && showTutorials) dispatch(setShowTutorial(false));
           }}
         />
-        {
-          isMobile && (
-            <TopBarButton
-              icon={<Network className="h-4 w-4" />}
-              label="Builder"
-              active={!showCode && !showTutorials}
-              onClick={() => {
-                dispatch(setShowTutorial(false));
-                dispatch(setShowCode(false));
-              }}
-            />
-          )
-        }
+        {isMobile && (
+          <TopBarButton
+            icon={<Network className="h-4 w-4" />}
+            label="Builder"
+            active={!showCode && !showTutorials}
+            onClick={() => {
+              dispatch(setShowTutorial(false));
+              dispatch(setShowCode(false));
+            }}
+          />
+        )}
       </div>
 
       {/* Compile and run code, either automatically or manually */}

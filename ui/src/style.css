@@ -2,9 +2,10 @@
 @plugin "@tailwindcss/typography";
 
 body {
-  font-family: 'Geist', sans-serif;
+  font-family: "Geist", sans-serif;
 }
 
-code, pre {
-  font-family: 'Geist Mono', monospace;
+code,
+pre {
+  font-family: "Geist Mono", monospace;
 }

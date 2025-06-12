@@ -1,9 +1,9 @@
-import { useMemo } from "react";
 import katex from "katex";
+import { useMemo } from "react";
 
 export default function LatexString({ latex }: { latex: string }) {
   const renderedContent = useMemo(() => {
-    if (!latex) return '';
+    if (!latex) return "";
     try {
       const rendered = katex.renderToString(latex);
       return rendered;
@@ -12,5 +12,6 @@ export default function LatexString({ latex }: { latex: string }) {
       return latex;
     }
   }, [latex]);
+  // biome-ignore lint/security/noDangerouslySetInnerHtml: we trust Katex output
   return <span dangerouslySetInnerHTML={{ __html: renderedContent }} />;
 }
