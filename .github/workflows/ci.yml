@@ -26,3 +26,8 @@ jobs:
       run: |
         cd ui
         npm run build
+    
+    - name: Lint
+      run: |
+        cd ui
+        npm run lint:ci
