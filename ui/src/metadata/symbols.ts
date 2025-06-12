@@ -5,4 +5,29 @@ export const REPLACABLE_SYMBOLS = [
     pattern: "\\|-",
     symbol: "\\vdash",
   },
+  {
+    name: "<",
+    pattern: "<",
+    symbol: "\\lt",
+  },
+  {
+    name: ">",
+    pattern: ">",
+    symbol: "\\gt",
+  },
+  {
+    name: "*",
+    pattern: "\\*",
+    symbol: "\\:*\\:",
+  },
+  {
+    name: "+",
+    pattern: "\\+",
+    symbol: "\\:+\\:",
+  },
+  {
+    name: "-",
+    pattern: "-",
+    symbol: "\\:-",
+  },
 ];
