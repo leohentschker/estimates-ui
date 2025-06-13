@@ -28,7 +28,7 @@ export const REPLACABLE_SYMBOLS = [
   {
     name: ">=",
     pattern: ">=",
-    symbol: '\\geq',
+    symbol: "\\geq",
   },
   {
     name: "<",
@@ -41,9 +41,9 @@ export const REPLACABLE_SYMBOLS = [
     symbol: "\\gt",
   },
   {
-    name: '**',
-    pattern: '\\*\\*',
-    symbol: '\^',
+    name: "**",
+    pattern: "\\*\\*",
+    symbol: "\^",
   },
   {
     name: "*",
