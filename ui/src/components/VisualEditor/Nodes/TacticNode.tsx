@@ -4,7 +4,6 @@ import { useAppSelector } from "../../../store";
 import RenderedNodeText from "./RenderedNodeText";
 import TacticPopover from "./TacticPopover";
 
-
 export default function TacticNode({
   id,
   data,

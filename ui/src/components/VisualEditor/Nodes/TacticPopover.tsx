@@ -70,7 +70,7 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
       opts.push(
         ...hypotheses.map((h) => ({
           label: `${h.name}: ${h.input}`,
-          value: h.name,
+          value: `"${h.name}"`,
         })),
       );
     if (tac.arguments.includes("verbose"))

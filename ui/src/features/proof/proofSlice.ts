@@ -233,6 +233,7 @@ export const proofSlice = createSlice({
           deletable: false,
         },
       ];
+
       const layoutResult = layoutGraphElements(newNodes, newEdges, {
         direction: "TB",
       });
@@ -356,7 +357,11 @@ export const proofSlice = createSlice({
           source: e.source,
           target: e.target,
           type: TACTIC_EDGE_TYPE,
-          data: { tactic, resolutionId, isLemma },
+          data: {
+            tactic,
+            resolutionId: existingEdge?.data?.resolutionId || resolutionId,
+            isLemma,
+          },
           deletable: false,
         });
       }

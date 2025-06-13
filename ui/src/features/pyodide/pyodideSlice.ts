@@ -85,7 +85,7 @@ def traverse(node):
         tactic_label = str(node.tactic) or ""
         _edges.append(dict(source=parent_id, target=child_id, label=tactic_label))
 ${codePrefix}
-out = ${codeSuffix}
+out = ${codeSuffix?.trim() ? codeSuffix : "None"}
 traverse(p.proof_tree)
 graph=dict(nodes=_nodes, edges=_edges, proof_complete=p.proof_tree.is_sorry_free())
 out

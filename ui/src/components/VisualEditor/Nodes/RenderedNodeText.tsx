@@ -1,7 +1,6 @@
-import { SUPPORTED_VARIABLE_TYPES } from "../../../metadata/variables";
 import { REPLACABLE_SYMBOLS } from "../../../metadata/symbols";
+import { SUPPORTED_VARIABLE_TYPES } from "../../../metadata/variables";
 import LatexString from "../LatexString";
-
 
 const LATEX_TRANSLATIONS = [
   ...SUPPORTED_VARIABLE_TYPES,
