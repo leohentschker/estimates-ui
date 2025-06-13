@@ -11,6 +11,21 @@ export const REPLACABLE_SYMBOLS = [
     symbol: "\\vdash",
   },
   {
+    name: "&",
+    pattern: "&",
+    symbol: "\\land",
+  },
+  {
+    name: "<=",
+    pattern: "<=",
+    symbol: "\\leq",
+  },
+  {
+    name: ">=",
+    pattern: ">=",
+    symbol: '\\geq',
+  },
+  {
     name: "<",
     pattern: "<",
     symbol: "\\lt",
