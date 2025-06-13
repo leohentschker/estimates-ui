@@ -1,6 +1,11 @@
 // These symbols are replaced with their LaTeX equivalents in rendered node text
 export const REPLACABLE_SYMBOLS = [
   {
+    name: "Theta",
+    pattern: "Theta",
+    symbol: "\\Theta",
+  },
+  {
     name: "|-",
     pattern: "\\|-",
     symbol: "\\vdash",
@@ -14,6 +19,11 @@ export const REPLACABLE_SYMBOLS = [
     name: ">",
     pattern: ">",
     symbol: "\\gt",
+  },
+  {
+    name: '**',
+    pattern: '\\*\\*',
+    symbol: '\^',
   },
   {
     name: "*",
