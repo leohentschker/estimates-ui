@@ -16,6 +16,11 @@ export const REPLACABLE_SYMBOLS = [
     symbol: "\\land",
   },
   {
+    name: "|",
+    pattern: "|",
+    symbol: "\\lor",
+  },
+  {
     name: "<=",
     pattern: "<=",
     symbol: "\\leq",
