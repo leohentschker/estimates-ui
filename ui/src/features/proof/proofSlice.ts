@@ -234,7 +234,7 @@ export const proofSlice = createSlice({
         },
       ];
 
-      console.log(newEdges, 'NEW EDGES??');
+      console.log(newEdges, "NEW EDGES??");
 
       const layoutResult = layoutGraphElements(newNodes, newEdges, {
         direction: "TB",
@@ -289,8 +289,6 @@ export const proofSlice = createSlice({
 
       const flowEdges: Edge[] = [];
       const flowNodes: Node[] = [];
-      console.log(pyodideNodes, 'PYODIDE NODES??');
-      console.log(pyodideEdges, 'PYODIDE EDGES??');
       for (const n of pyodideNodes) {
         flowNodes.push({
           id: n.id,
@@ -364,13 +362,11 @@ export const proofSlice = createSlice({
           data: {
             tactic,
             resolutionId: existingEdge?.data?.resolutionId || resolutionId,
-            isLemma
+            isLemma,
           },
           deletable: false,
         });
       }
-
-      console.log(flowEdges, 'FLOW EDGES RESOLVED??');
 
       flowNodes.push({
         id: GOAL_NODE_ID,

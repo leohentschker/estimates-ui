@@ -34,7 +34,6 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
 
   const apply = (tactic: Tactic | Lemma, isLemma: boolean) => {
     const call = `${tactic.className}(${args.join(", ")})`;
-    console.log('APPLYING TACTIC??', call, nodeId, isLemma);
     dispatch(applyTactic({ nodeId, tactic: call, isLemma }));
     setOpen(false);
   };
