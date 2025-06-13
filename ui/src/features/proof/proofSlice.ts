@@ -234,8 +234,6 @@ export const proofSlice = createSlice({
         },
       ];
 
-      console.log(newEdges, "NEW EDGES??");
-
       const layoutResult = layoutGraphElements(newNodes, newEdges, {
         direction: "TB",
       });
