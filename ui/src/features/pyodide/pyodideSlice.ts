@@ -64,6 +64,7 @@ export const loadCustomPyodide = createAsyncThunk(
         let result: unknown;
         const codePrefix = code.split("\n").slice(0, -1).join("\n");
         const codeSuffix = code.split("\n").pop();
+
         const augmentedCode = `
 _id_map = {}
 _counter = 0
@@ -85,11 +86,12 @@ def traverse(node):
         tactic_label = str(node.tactic) or ""
         _edges.append(dict(source=parent_id, target=child_id, label=tactic_label))
 ${codePrefix}
-out = ${codeSuffix}
+out = ${codeSuffix?.trim() ?codeSuffix : "None"}
 traverse(p.proof_tree)
 graph=dict(nodes=_nodes, edges=_edges, proof_complete=p.proof_tree.is_sorry_free())
 out
 `.trim();
+
         try {
           result = await pyodide.runPythonAsync(augmentedCode);
         } catch (error) {
@@ -208,9 +210,13 @@ export const convertProofGraphToCode = createAsyncThunk(
       }
       visitedNodes.add(currentNode.id);
 
+      console.log('CURRENT NODE??', currentNode);
+
       const outboundEdges = [...edges]
         .filter((e) => e.source === currentNode.id)
         .reverse();
+
+      console.log('OUTBOUND EDGES??', outboundEdges.map((e) => `${e.source} -> ${e.target} ${e.data?.tactic}`));
 
       for (const edge of outboundEdges) {
         dfsSortedNodesAndEdges.push({ edge });
@@ -229,8 +235,10 @@ export const convertProofGraphToCode = createAsyncThunk(
     for (const { edge } of dfsSortedNodesAndEdges) {
       const edgeResolutionId = (edge.data?.resolutionId ?? "").toString();
       if (edgeResolutionId && resolutionIds.has(edgeResolutionId)) {
+        console.log('SKIPPING EDGE??', edgeResolutionId);
         continue;
       }
+      console.log('ADDING CODE FROM EDGE??', `${edge.source} -> ${edge.target} ${edge.data?.tactic}`);
       resolutionIds.add(edgeResolutionId);
       const tacticName = (edge.data?.tactic ?? "").toString();
       const isLemma = edge.data?.isLemma ?? false;
@@ -253,6 +261,7 @@ export const convertProofGraphToCode = createAsyncThunk(
     }
     codeLines.push("p.proof()");
 
+    console.log('GENERATED CODE??', codeLines.join("\n"));
     return codeLines.join("\n");
   },
 );
