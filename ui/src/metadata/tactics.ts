@@ -18,7 +18,7 @@ export const AVAILABLE_TACTICS: Tactic[] = [
     label: "Contrapositive",
     description: "Contrapositive",
     className: "Contrapose",
-    arguments: [],
+    arguments: ["hypotheses"],
   },
   {
     id: "split-hypothesis",
