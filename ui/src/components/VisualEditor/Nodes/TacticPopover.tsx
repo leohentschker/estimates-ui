@@ -119,7 +119,7 @@ export default function TacticPopover({
                   <button
                     type="button"
                     key={t.id}
-                    className="cursor-pointer hover:bg-gray-100 rounded-md p-2"
+                    className="cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left"
                     onClick={() => {
                       setItemType("tactic");
 
@@ -144,7 +144,7 @@ export default function TacticPopover({
                     type="button"
                     key={l.id}
                     className={classNames(
-                      "cursor-pointer hover:bg-gray-100 rounded-md p-2",
+                      "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
                     )}
                     onClick={() => {
                       setItemType("lemma");
@@ -181,7 +181,7 @@ export default function TacticPopover({
                         )
                       }
                       className={classNames(
-                        "cursor-pointer hover:bg-gray-100 rounded-md p-2",
+                        "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
                         args.includes(opt) && "bg-gray-100",
                       )}
                     >

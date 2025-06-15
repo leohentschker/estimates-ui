@@ -25,7 +25,7 @@ export const AVAILABLE_TACTICS: Tactic[] = [
     label: "Split hypothesis",
     description: "Split hypothesis",
     className: "SplitHyp",
-    arguments: ["hypotheses"],
+    arguments: ["hypotheses", "goal"],
   },
   {
     id: "cases",
