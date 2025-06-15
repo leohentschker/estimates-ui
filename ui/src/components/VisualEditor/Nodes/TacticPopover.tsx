@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   applyTactic,
   selectAssumptions,
+  selectGoal,
   selectVariables,
 } from "../../../features/proof/proofSlice";
 import {
@@ -20,6 +21,12 @@ import LatexString from "../LatexString";
 type Item = Tactic | Lemma;
 type ItemType = "tactic" | "lemma";
 
+type SelectedArg = {
+  label: string;
+  value: string;
+  id: string;
+};
+
 export default function TacticPopover({
   nodeId,
   children,
@@ -32,14 +39,15 @@ export default function TacticPopover({
   const [step, setStep] = useState<"select" | "config">("select");
   const [itemType, setItemType] = useState<ItemType>();
   const [selected, setSelected] = useState<Item>();
-  const [args, setArgs] = useState<string[]>([]);
+  const [args, setArgs] = useState<SelectedArg[]>([]);
 
   const variables = useAppSelector(selectVariables);
   const hypotheses = useAppSelector(selectAssumptions);
+  const goal = useAppSelector(selectGoal);
   const dispatch = useAppDispatch();
 
   const apply = (tactic: Tactic | Lemma, isLemma: boolean) => {
-    const call = `${tactic.className}(${args.join(", ")})`;
+    const call = `${tactic.className}(${args.map((a) => a.value).join(", ")})`;
     dispatch(applyTactic({ nodeId, tactic: call, isLemma }));
     setOpen(false);
   };
@@ -69,23 +77,28 @@ export default function TacticPopover({
   const argOptions = useMemo(() => {
     if (itemType !== "tactic" || !selected) return [];
     const tac = selected as Tactic;
-    const opts: { label: string; value: string }[] = [];
+    const opts: { label: string; value: string; id: string }[] = [];
     if (tac.arguments.includes("variables"))
-      opts.push(...variables.map((v) => ({ label: v.name, value: v.name })));
+      opts.push(
+        ...variables.map((v) => ({ label: v.name, value: v.name, id: v.name })),
+      );
     if (tac.arguments.includes("hypotheses"))
       opts.push(
         ...hypotheses.map((h) => ({
           label: `${h.name}: ${h.input}`,
           value: `"${h.name}"`,
+          id: h.name,
         })),
       );
     if (tac.arguments.includes("verbose"))
       opts.push(
-        { label: "verbose=True", value: "verbose=True" },
-        { label: "verbose=False", value: "verbose=False" },
+        { label: "verbose=True", value: "verbose=True", id: "verbose=True" },
+        { label: "verbose=False", value: "verbose=False", id: "verbose=False" },
       );
+    if (tac.arguments.includes("goal"))
+      opts.push({ label: goal.input, value: "", id: goal.input });
     return opts;
-  }, [selected, itemType, variables, hypotheses]);
+  }, [selected, itemType, variables, hypotheses, goal]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -162,14 +175,14 @@ export default function TacticPopover({
                       key={opt.value}
                       onClick={() =>
                         setArgs((prev) =>
-                          prev.includes(opt.value)
-                            ? prev.filter((a) => a !== opt.value)
-                            : [opt.value],
+                          prev.includes(opt)
+                            ? prev.filter((a) => a !== opt)
+                            : [opt],
                         )
                       }
                       className={classNames(
                         "cursor-pointer hover:bg-gray-100 rounded-md p-2",
-                        args.includes(opt.value) && "bg-gray-100",
+                        args.includes(opt) && "bg-gray-100",
                       )}
                     >
                       {opt.label}
@@ -179,8 +192,16 @@ export default function TacticPopover({
                   <div className="flex items-center">
                     <span>{selected.className}(</span>
                     <Input
-                      value={args[0] || ""}
-                      onChange={(e) => setArgs([e.target.value])}
+                      value={args[0].value || ""}
+                      onChange={(e) =>
+                        setArgs([
+                          {
+                            label: e.target.value,
+                            value: e.target.value,
+                            id: e.target.value,
+                          },
+                        ])
+                      }
                       className="mx-2"
                       placeholder="x**2,y**2"
                     />
@@ -203,7 +224,7 @@ export default function TacticPopover({
                 </Button>
                 <Button
                   onClick={() => apply(selected, itemType === "lemma")}
-                  disabled={args.length === 0 || args[0] === ""}
+                  disabled={args.length === 0 || args[0].id === ""}
                   className="w-full"
                   variant="primary"
                   size="xs"
