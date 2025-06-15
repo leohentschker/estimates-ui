@@ -95,8 +95,12 @@ export default function TacticPopover({
         { label: "verbose=True", value: "verbose=True", id: "verbose=True" },
         { label: "verbose=False", value: "verbose=False", id: "verbose=False" },
       );
-    if (tac.arguments.includes("goal"))
-      opts.push({ label: goal.input, value: "", id: goal.input });
+    if (tac.arguments.includes("this"))
+      opts.push({
+        label: "none (applies to current state)",
+        value: "",
+        id: goal.input,
+      });
     return opts;
   }, [selected, itemType, variables, hypotheses, goal]);
 

@@ -3,7 +3,7 @@ export type Tactic = {
   label: string;
   description: string;
   className: string;
-  arguments: ("variables" | "hypotheses" | "goal" | "verbose")[];
+  arguments: ("variables" | "hypotheses" | "verbose" | "this")[];
 };
 export const AVAILABLE_TACTICS: Tactic[] = [
   {
@@ -18,14 +18,14 @@ export const AVAILABLE_TACTICS: Tactic[] = [
     label: "Contrapositive",
     description: "Contrapositive",
     className: "Contrapose",
-    arguments: ["hypotheses", "goal"],
+    arguments: ["hypotheses", "this"],
   },
   {
     id: "split-hypothesis",
     label: "Split hypothesis",
     description: "Split hypothesis",
     className: "SplitHyp",
-    arguments: ["hypotheses", "goal"],
+    arguments: ["hypotheses", "this"],
   },
   {
     id: "cases",
