@@ -75,7 +75,7 @@ def traverse(node):
     if node not in _id_map:
         node_id = f"n{_counter}"
         _id_map[node] = node_id
-        label = str(node.proof_state).replace("\\n", " | ")
+        label = str(node.proof_state)
         _nodes.append(dict(id=node_id, label=label, tactic=str(node.tactic) or "", sorry_free=node.is_sorry_free()))
         _counter += 1
     for child in node.children:

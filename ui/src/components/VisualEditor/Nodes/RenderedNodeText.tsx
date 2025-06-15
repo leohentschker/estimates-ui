@@ -20,13 +20,13 @@ export default function RenderedNodeText({ text }: { text: string }) {
   ].join("|");
   const parts = text.split(new RegExp(`(${typePattern})`, "g"));
   return (
-    <>
+    <span className="text-xs">
       {parts.map((part) => {
         if (LATEX_TRANSLATIONS[part]) {
           return <LatexString latex={LATEX_TRANSLATIONS[part]} />;
         }
         return part;
       })}
-    </>
+    </span>
   );
 }

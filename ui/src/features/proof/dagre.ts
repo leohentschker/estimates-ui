@@ -1,13 +1,20 @@
 import type { Edge, Node } from "@xyflow/react";
 import Dagre from "dagre";
 
+const DEFAULT_VERTICAL_BETWEEN_NODES = 300;
+const DEFAULT_HORIZONTAL_BETWEEN_NODES = 500;
+
 export const layoutGraphElements = (
   nodes: Node[],
   edges: Edge[],
   options: { direction: string },
 ) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: options.direction, nodesep: 500, ranksep: 150 });
+  g.setGraph({
+    rankdir: options.direction,
+    nodesep: DEFAULT_HORIZONTAL_BETWEEN_NODES,
+    ranksep: DEFAULT_VERTICAL_BETWEEN_NODES,
+  });
 
   for (const edge of edges) {
     g.setEdge(edge.source, edge.target);
