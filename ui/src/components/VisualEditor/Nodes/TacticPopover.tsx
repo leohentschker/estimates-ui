@@ -20,7 +20,13 @@ import LatexString from "../LatexString";
 type Item = Tactic | Lemma;
 type ItemType = "tactic" | "lemma";
 
-export default function TacticPopover({ nodeId }: { nodeId: string }) {
+export default function TacticPopover({
+  nodeId,
+  children,
+}: {
+  nodeId: string;
+  children: React.ReactNode;
+}) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"select" | "config">("select");
@@ -83,11 +89,7 @@ export default function TacticPopover({ nodeId }: { nodeId: string }) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
-        <Button variant="outline" size="xs">
-          <LatexString latex="+" /> apply tactic
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="bg-white z-200000">
         <div className="flex flex-col gap-2">
           {step === "select" && (
