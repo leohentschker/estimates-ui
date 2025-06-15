@@ -7,6 +7,7 @@ import {
   addVariables,
   applyTactic,
   loadProblem,
+  selectEdges,
   selectNodes,
   selectVariables,
   setAssumptions,
@@ -44,6 +45,7 @@ export default function TutorialExample({
   const appDispatch = useAppDispatch();
   const proofSolved = useAppSelector(selectProofComplete);
   const nodes = useAppSelector(selectNodes);
+  const edges = useAppSelector(selectEdges);
   const existingVariables = useAppSelector(selectVariables);
   const isMobile = useAppSelector(selectIsMobile);
 
@@ -51,11 +53,17 @@ export default function TutorialExample({
     if (!tactic) {
       return null;
     }
-    const nonGoalNodes = nodes.filter((node) => node.id !== GOAL_NODE_ID);
+
+    const incompleteNodes = nodes
+      .filter((node) => node.id !== GOAL_NODE_ID)
+      .filter((node) => {
+        const outboundEdge = edges.find((edge) => edge.source === node.id);
+        return !outboundEdge || outboundEdge.data?.tactic === "sorry";
+      });
     if (tactic.position === "last") {
-      return nonGoalNodes[nonGoalNodes.length - 1];
+      return incompleteNodes[incompleteNodes.length - 1];
     }
-  }, [tactic, nodes]);
+  }, [tactic, nodes, edges]);
 
   return (
     <div className="relative">
