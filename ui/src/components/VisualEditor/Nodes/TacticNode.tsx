@@ -1,6 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import { useMemo } from "react";
-import { selectEdges } from "../../../features/proof/proofSlice";
+import { selectEdges, selectNodes } from "../../../features/proof/proofSlice";
 import { useAppSelector } from "../../../store";
 import { Button } from "../../Button";
 import LatexString from "../LatexString";
@@ -20,10 +20,21 @@ export default function TacticNode({
   const simplifiedResult = data.label;
 
   const edges = useAppSelector(selectEdges);
+  const nodes = useAppSelector(selectNodes);
   const outboundEdge = edges.find((edge) => edge.source === id);
   const isSourceNode = edges.some((edge) => edge.target === id);
 
-  const { variables, hypotheses } = useMemo(
+  const baseNodeState = useMemo(() => {
+    const sourceNode = nodes.find(
+      (node) => !edges.some((edge) => edge.target === node.id),
+    );
+    if (!sourceNode) return null;
+    const label = sourceNode.data.label;
+    if (typeof label !== "string") return null;
+    return parseNodeState(label);
+  }, [edges, nodes]);
+
+  const { variables, hypotheses, goal } = useMemo(
     () => parseNodeState(simplifiedResult),
     [simplifiedResult],
   );
@@ -39,6 +50,9 @@ export default function TacticNode({
           {hypotheses.map((line) => (
             <RenderedNodeText key={line} text={line} />
           ))}
+          {goal !== baseNodeState?.goal && (
+            <RenderedNodeText text={`|- ${goal}`} />
+          )}
         </div>
       ) : (
         <div className="border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center">
