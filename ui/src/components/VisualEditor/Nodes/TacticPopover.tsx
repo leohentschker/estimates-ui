@@ -192,7 +192,7 @@ export default function TacticPopover({
                   <div className="flex items-center">
                     <span>{selected.className}(</span>
                     <Input
-                      value={args[0].value || ""}
+                      value={args.length > 0 ? args[0].value : ""}
                       onChange={(e) =>
                         setArgs([
                           {
