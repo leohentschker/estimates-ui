@@ -35,7 +35,7 @@ export async function loadAndRunPyodide({
     await pyodide.runPythonAsync(`
         import micropip
         await micropip.install("https://microsoft.github.io/z3guide/z3_solver-4.13.4.0-py3-none-pyodide_2024_0_wasm32.whl")
-      await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
+        await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
     `);
 
     console.log("Completed installations");
