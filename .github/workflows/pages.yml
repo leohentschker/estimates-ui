@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main", "DEV-remove-local-shim" ]
+    branches: [ "main" ]
 
 permissions:
   contents: write
