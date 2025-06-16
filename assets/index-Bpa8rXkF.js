@@ -77,7 +77,7 @@ Error generating stack: `+y.message+`
     `),await t.runPythonAsync(`
         import micropip
         await micropip.install("https://microsoft.github.io/z3guide/z3_solver-4.13.4.0-py3-none-pyodide_2024_0_wasm32.whl")
-      await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
+        await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
     `),console.log("Completed installations"),t}catch(t){console.error(t);return}}let qd=null,Uh=[];const SL=Z4("pyodide/loadCustomPyodide",async(e,{dispatch:t})=>{const n=await gX({stdout:r=>Uh.push(r)});return n?(qd={runPythonAsync:async r=>{Uh=[];let a;const i=r.split(`
 `).slice(0,-1).join(`
 `),l=r.split(`
