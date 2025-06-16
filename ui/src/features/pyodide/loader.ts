@@ -22,7 +22,7 @@ export async function loadAndRunPyodide({
   local = false,
 }: {
   stdout: (message: string) => void;
-  local: boolean;
+  local?: boolean;
 }): Promise<PyodideInterface | undefined> {
   try {
     const pyodide = await initPyodide({
