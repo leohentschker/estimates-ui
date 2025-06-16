@@ -1,8 +1,0 @@
-[project]
-name = "z3"
-version = "0.1.0"
-description = "Pyodide-compatible shim for Z3."
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-]
