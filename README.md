@@ -5,21 +5,9 @@ Browser-based IDE for writing proofs with the [`estimates`](https://github.com/t
 
 ## How it works
 This is supported by three pieces of work:
-1. [`src/z3`](src/z3) pyodide-compatible z3 wheel by wrapping the z3 WASM build in a python shim and building as a pure-python wheel
+1. [z3 wheel](https://github.com/Z3Prover/z3/issues/7418) pyodide-compatible z3 wheel released by the Microsoft team
 2. [estimates-pyproject.toml](estimates-pyproject.toml) pure-python `estimates` wheel
-3. [ui](ui) `vite` app that loads the uses Pyodide to serve `estimates` wheel, after injecting custom `z3` dependency
-
-### Pyodide-compatible z3 wheel
-Estimates has a dependency on `z3`, which does not load in Pyodide (it requires native code), but does have WASM bindings. By wrapping the JS calls in a python shim that mirrors the python interface, we can create a pure python alternative to `z3`. This code is in [`src/z3`](src/z3) and is built into a wheel in [`.github/workflows/pages.yml`](.github/workflows/pages.yml). Building a pure python `z3` may independently be a project of value, as the `z3` project is currently [actively researching](https://github.com/pyodide/pyodide/issues/5203) how to export an official Pyodide-compatible build.
-
-#### How this can break
-The most common failure mode of the whole project likely will come from differences in behavior between how the actual z3 python library with native code works and how our shim works. This could look like:
-1. Missing methods or exports from the shim that are available in normal z3 code
-2. Implementation differences in the shim and the native code
-3. Confusing behavior around concurrency that haven't been fully explored in this shim
-
-#### How you can help this piece of work
-We need a unit testing suite that makes sure our python shim behaves identically to the native `z3` library.  We should both validate that its behavior matches the underlying z3 api to the best of our ability, and extend supported methods to other methods that `estimates` may use in the future, as it currently only supports a subset.
+3. [ui](ui) `vite` app that loads the uses Pyodide to serve `estimates` wheel, after injecting the `z3` dependency
 
 ### Building estimates as a wheel
 1. Pyodide works with python 3.12 while `estimates` is built by default with 3.13
@@ -44,7 +32,7 @@ npm run dev
 ```
 
 #### How this can break
-This can break in all the classic ways that web apps can break! This site is built on top of two non-thoroughly-tested python wheels, and can run into all of the classic issues of any web app. 
+This can break in all the classic ways that web apps can break! Any and all contributions are welcome.
 
 ## Contributing
 Please review the issues tagged with `good-first-issue` or submit an issue of your own! This is a very early-stage project, so contributors are actively encouraged.

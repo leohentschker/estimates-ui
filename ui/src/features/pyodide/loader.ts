@@ -18,11 +18,8 @@ async function initPyodide({
 
 export async function loadAndRunPyodide({
   stdout = (message: string) => console.log(message),
-  // TODO: switch fully to the z3 release and remove local file building
-  local = false,
 }: {
   stdout: (message: string) => void;
-  local?: boolean;
 }): Promise<PyodideInterface | undefined> {
   try {
     const pyodide = await initPyodide({
@@ -34,22 +31,13 @@ export async function loadAndRunPyodide({
         await micropip.install("micropip")
         await micropip.install("sympy")
     `);
-    console.log("installing z3");
-    if (local) {
-      await pyodide.runPythonAsync(`
-        import micropip
-        await micropip.install("file:./z3-0.2.0-py3-none-any.whl")
-        import z3
-        await z3._init()
-        await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
-      `);
-    } else {
-      await pyodide.runPythonAsync(`
+
+    await pyodide.runPythonAsync(`
         import micropip
         await micropip.install("https://microsoft.github.io/z3guide/z3_solver-4.13.4.0-py3-none-pyodide_2024_0_wasm32.whl")
-        await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
-      `);
-    }
+      await micropip.install("file:./estimates-0.3.0-py3-none-any.whl")
+    `);
+
     console.log("Completed installations");
     return pyodide;
   } catch (error) {
