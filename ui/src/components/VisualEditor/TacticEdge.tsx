@@ -3,10 +3,10 @@ import { BaseEdge, MarkerType, getStraightPath } from "@xyflow/react";
 import { EdgeLabelRenderer } from "@xyflow/react";
 import { PencilIcon } from "lucide-react";
 import { removeEdge } from "../../features/proof/proofSlice";
+import { SORRY_TACTIC } from "../../metadata/graph";
 import { useAppDispatch } from "../../store";
 import LatexString from "./LatexString";
 import TacticPopover from "./Nodes/TacticPopover";
-import { SORRY_TACTIC } from "../../metadata/graph";
 
 export default function TacticEdge({
   id,

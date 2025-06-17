@@ -1,13 +1,13 @@
 import { Handle, Position } from "@xyflow/react";
 import { useMemo } from "react";
 import { selectEdges, selectNodes } from "../../../features/proof/proofSlice";
+import { SORRY_TACTIC } from "../../../metadata/graph";
 import { useAppSelector } from "../../../store";
 import { Button } from "../../Button";
 import LatexString from "../LatexString";
 import RenderedNodeText from "./RenderedNodeText";
 import TacticPopover from "./TacticPopover";
 import { parseNodeState } from "./nodeStateHelpers";
-import { SORRY_TACTIC } from "../../../metadata/graph";
 
 export default function TacticNode({
   id,
