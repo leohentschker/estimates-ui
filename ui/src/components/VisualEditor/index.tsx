@@ -26,6 +26,7 @@ import {
 import { useAppDispatch } from "../../store";
 import { useAppSelector } from "../../store";
 import { Button } from "../Button";
+import LoadingState from "../LoadingState";
 import GoalNode from "./Nodes/GoalNode";
 import TacticNode from "./Nodes/TacticNode";
 import TacticEdge from "./TacticEdge";
@@ -48,14 +49,7 @@ export default function VisualEditor(): React.ReactElement {
   };
 
   if (pyodideLoading || !pyodideLoaded) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" />
-          <span className="ml-2 text-indigo-600">Initializing builder...</span>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Initializing builder..." />;
   }
 
   return (

@@ -261,7 +261,6 @@ interface PyodideState {
   code: string;
   pyodideLoaded: boolean;
   error: string | null;
-  isJaspiError: boolean;
   serializedResult: string | null;
   stdout: string[];
   loading: boolean;
@@ -273,7 +272,6 @@ const initialState: PyodideState = {
   code: "",
   pyodideLoaded: false,
   error: null,
-  isJaspiError: false,
   serializedResult: null,
   stdout: [],
   loading: false,
@@ -298,7 +296,6 @@ export const pyodideSlice = createSlice({
       state.proofOutput = null;
       state.serializedResult = null;
       state.error = null;
-      state.isJaspiError = false;
       state.stdout = [];
     });
     builder.addCase(convertProofGraphToCode.fulfilled, (state, action) => {
@@ -333,11 +330,6 @@ export const pyodideSlice = createSlice({
         : result && String(result).includes("Error: Traceback")
           ? String(result)
           : null;
-      state.isJaspiError =
-        !!result &&
-        String(result).includes(
-          "WebAssembly stack switching not supported in this JavaScript runtime",
-        );
       state.stdout = stdResults || [];
       state.proofOutput = output || null;
       state.proofComplete = proofComplete || false;
@@ -380,8 +372,6 @@ export const { setCode } = pyodideSlice.actions;
 export const selectCode = (state: RootState) => state.pyodide.code;
 export const selectPyodideLoaded = (state: RootState) =>
   state.pyodide.pyodideLoaded;
-export const selectIsJaspiError = (state: RootState) =>
-  state.pyodide.isJaspiError;
 export const selectSerializedResult = (state: RootState) =>
   state.pyodide.serializedResult;
 export const selectError = (state: RootState) => state.pyodide.error;
