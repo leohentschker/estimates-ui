@@ -101,8 +101,18 @@ export default function TacticPopover({
         value: "",
         id: goal.input,
       });
+    if (tac.arguments.includes("expressions"))
+      opts.push({ label: "Expression", value: "Expression", id: "expression" });
     return opts;
   }, [selected, itemType, variables, hypotheses, goal]);
+
+  const applyTacticDisabled = useMemo(() => {
+    if (selected?.arguments.length === 0) return false;
+    if (itemType === "tactic") {
+      return args.length === 0;
+    }
+    return args.length === 0 || args[0].id === "";
+  }, [args, itemType]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -126,12 +136,6 @@ export default function TacticPopover({
                     className="cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left"
                     onClick={() => {
                       setItemType("tactic");
-
-                      if (t.arguments.length === 0) {
-                        apply(t, false);
-                        return;
-                      }
-
                       setSelected(t);
                       setArgs([]);
                       setStep("config");
@@ -153,10 +157,6 @@ export default function TacticPopover({
                     onClick={() => {
                       setItemType("lemma");
                       setArgs([]);
-                      if (l.arguments.length === 0) {
-                        apply(l, true);
-                        return;
-                      }
                       setSelected(l);
                       setStep("config");
                     }}
@@ -170,27 +170,46 @@ export default function TacticPopover({
 
           {step === "config" && selected && (
             <>
-              <div>Arguments for {selected.label}</div>
+              <div>Apply {selected.label}</div>
+              <div className="text-gray-500">
+                {selected.description}
+              </div>
               <div className="flex flex-col gap-2 py-2">
                 {itemType === "tactic" ? (
                   argOptions.map((opt) => (
-                    <button
-                      type="button"
-                      key={opt.value}
-                      onClick={() =>
-                        setArgs((prev) =>
-                          prev.includes(opt)
-                            ? prev.filter((a) => a !== opt)
-                            : [opt],
-                        )
-                      }
-                      className={classNames(
-                        "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
-                        args.includes(opt) && "bg-gray-100",
-                      )}
-                    >
-                      {opt.label}
-                    </button>
+                    opt.id === "expression" ? (
+                      <Input
+                        value={args.length > 0 ? args[0].value : ""}
+                        onChange={(e) =>
+                          setArgs([
+                            {
+                              label: e.target.value,
+                              value: e.target.value,
+                              id: e.target.value,
+                            },
+                          ])
+                        }
+                        placeholder="x >= z"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        key={opt.value}
+                        onClick={() =>
+                          setArgs((prev) =>
+                            prev.includes(opt)
+                              ? prev.filter((a) => a !== opt)
+                              : [opt],
+                          )
+                        }
+                        className={classNames(
+                          "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
+                          args.includes(opt) && "bg-gray-100",
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    )
                   ))
                 ) : (
                   <div className="flex items-center">
@@ -228,7 +247,7 @@ export default function TacticPopover({
                 </Button>
                 <Button
                   onClick={() => apply(selected, itemType === "lemma")}
-                  disabled={args.length === 0 || args[0].id === ""}
+                  disabled={applyTacticDisabled}
                   className="w-full"
                   variant="primary"
                   size="xs"
