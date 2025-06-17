@@ -7,7 +7,7 @@ const DEFAULT_HORIZONTAL_BETWEEN_NODES = 500;
 export const layoutGraphElements = (
   nodes: Node[],
   edges: Edge[],
-  options: { direction: string },
+  options: { direction: "TB" | "LR" } = { direction: "TB" },
 ) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   g.setGraph({

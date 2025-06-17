@@ -7,6 +7,7 @@ import LatexString from "../LatexString";
 import RenderedNodeText from "./RenderedNodeText";
 import TacticPopover from "./TacticPopover";
 import { parseNodeState } from "./nodeStateHelpers";
+import { SORRY_TACTIC } from "../../../metadata/graph";
 
 export default function TacticNode({
   id,
@@ -69,7 +70,7 @@ export default function TacticNode({
           id={`${id}-tactic-bottom`}
         />
       )}
-      {(!outboundEdge || outboundEdge.data?.tactic === "sorry") && (
+      {(!outboundEdge || outboundEdge.data?.tactic === SORRY_TACTIC) && (
         <TacticPopover nodeId={id}>
           <Button variant="outline" size="xs">
             <LatexString latex="+" /> apply tactic

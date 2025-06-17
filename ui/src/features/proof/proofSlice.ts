@@ -81,12 +81,6 @@ export const proofSlice = createSlice({
   name: "proof",
   initialState,
   reducers: {
-    setNodes: (state, action: PayloadAction<Node[]>) => {
-      state.nodes = action.payload as WritableDraft<Node[]>;
-    },
-    setEdges: (state, action: PayloadAction<Edge[]>) => {
-      state.edges = action.payload;
-    },
     setVariables: (state, action: PayloadAction<Variable[]>) => {
       state.variables = action.payload;
     },
@@ -234,16 +228,12 @@ export const proofSlice = createSlice({
         },
       ];
 
-      const layoutResult = layoutGraphElements(newNodes, newEdges, {
-        direction: "TB",
-      });
+      const layoutResult = layoutGraphElements(newNodes, newEdges);
       state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     },
     fixLayout: (state) => {
-      const layoutResult = layoutGraphElements(state.nodes, state.edges, {
-        direction: "TB",
-      });
+      const layoutResult = layoutGraphElements(state.nodes, state.edges);
       state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     },
@@ -378,9 +368,7 @@ export const proofSlice = createSlice({
           label: state.goal.input,
         },
       });
-      const layoutResult = layoutGraphElements(flowNodes, flowEdges, {
-        direction: "TB",
-      });
+      const layoutResult = layoutGraphElements(flowNodes, flowEdges);
       state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;
     });
@@ -388,8 +376,6 @@ export const proofSlice = createSlice({
 });
 
 export const {
-  setNodes,
-  setEdges,
   onNodesChange,
   onEdgesChange,
   removeEdge,
