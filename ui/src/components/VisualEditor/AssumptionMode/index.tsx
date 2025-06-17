@@ -10,6 +10,7 @@ export default function AssumptionMode() {
   const appDispatch = useAppDispatch();
   const variables = useAppSelector((state) => state.proof.variables);
 
+  // make sure we always have at least one variable on app start
   useEffect(() => {
     if (variables.length === 0) {
       appDispatch(addVariables([{ name: "x", type: "real" }]));
@@ -18,8 +19,13 @@ export default function AssumptionMode() {
 
   return (
     <div className="flex flex-col gap-6 h-full max-w-3xl mx-auto p-12 w-full">
+      {/* Set x, y, z, etc */}
       <VariableForm />
+
+      {/* Set h1, h2, etc */}
       <HypothesesForm />
+
+      {/* Set goal Eq(x, y) */}
       <GoalForm />
     </div>
   );

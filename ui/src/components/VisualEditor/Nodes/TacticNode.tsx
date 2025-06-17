@@ -45,7 +45,7 @@ export default function TacticNode({
         <Handle type="target" position={Position.Top} id={`${id}-top`} />
       )}
       {simplifiedResult ? (
-        <div className="border border-gray-300 rounded-md p-2 flex flex-col gap-2 max-w-48 px-4 text-xs text-center">
+        <div className="border border-gray-300 rounded-md p-2 flex flex-col gap-2 max-w-48 px-4 text-xs">
           <RenderedNodeText text={variables.join(", ")} />
           {hypotheses.map((line) => (
             <RenderedNodeText key={line} text={line} />

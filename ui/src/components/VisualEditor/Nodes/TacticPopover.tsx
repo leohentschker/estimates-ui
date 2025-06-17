@@ -19,7 +19,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../Popover";
 import LatexString from "../LatexString";
 
 type Item = Tactic | Lemma;
-type ItemType = "tactic" | "lemma";
 
 type SelectedArg = {
   label: string;
@@ -37,7 +36,6 @@ export default function TacticPopover({
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"select" | "config">("select");
-  const [itemType, setItemType] = useState<ItemType>();
   const [selected, setSelected] = useState<Item>();
   const [args, setArgs] = useState<SelectedArg[]>([]);
 
@@ -46,9 +44,11 @@ export default function TacticPopover({
   const goal = useAppSelector(selectGoal);
   const dispatch = useAppDispatch();
 
-  const apply = (tactic: Tactic | Lemma, isLemma: boolean) => {
+  const apply = (tactic: Tactic | Lemma) => {
     const call = `${tactic.className}(${args.map((a) => a.value).join(", ")})`;
-    dispatch(applyTactic({ nodeId, tactic: call, isLemma }));
+    dispatch(
+      applyTactic({ nodeId, tactic: call, isLemma: tactic.type === "lemma" }),
+    );
     setOpen(false);
   };
 
@@ -75,7 +75,7 @@ export default function TacticPopover({
   );
 
   const argOptions = useMemo(() => {
-    if (itemType !== "tactic" || !selected) return [];
+    if (!selected) return [];
     const tac = selected as Tactic;
     const opts: { label: string; value: string; id: string }[] = [];
     if (tac.arguments.includes("variables"))
@@ -101,8 +101,15 @@ export default function TacticPopover({
         value: "",
         id: goal.input,
       });
+    if (tac.arguments.includes("expressions"))
+      opts.push({ label: "Expression", value: "Expression", id: "expression" });
     return opts;
-  }, [selected, itemType, variables, hypotheses, goal]);
+  }, [selected, variables, hypotheses, goal]);
+
+  const applyTacticDisabled = useMemo(() => {
+    if (selected?.arguments.length === 0) return false;
+    return args.length === 0 || args[0].id === "";
+  }, [args, selected]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -125,13 +132,6 @@ export default function TacticPopover({
                     key={t.id}
                     className="cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left"
                     onClick={() => {
-                      setItemType("tactic");
-
-                      if (t.arguments.length === 0) {
-                        apply(t, false);
-                        return;
-                      }
-
                       setSelected(t);
                       setArgs([]);
                       setStep("config");
@@ -151,12 +151,7 @@ export default function TacticPopover({
                       "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
                     )}
                     onClick={() => {
-                      setItemType("lemma");
                       setArgs([]);
-                      if (l.arguments.length === 0) {
-                        apply(l, true);
-                        return;
-                      }
                       setSelected(l);
                       setStep("config");
                     }}
@@ -170,10 +165,30 @@ export default function TacticPopover({
 
           {step === "config" && selected && (
             <>
-              <div>Arguments for {selected.label}</div>
+              <div>Apply {selected.label}</div>
+              <div className="text-gray-500">{selected.description}</div>
               <div className="flex flex-col gap-2 py-2">
-                {itemType === "tactic" ? (
-                  argOptions.map((opt) => (
+                {argOptions.map((opt) =>
+                  opt.id === "expression" ? (
+                    <div className="flex items-center" key={opt.id}>
+                      <span>{selected.className}(</span>
+                      <Input
+                        value={args.length > 0 ? args[0].value : ""}
+                        onChange={(e) =>
+                          setArgs([
+                            {
+                              label: e.target.value,
+                              value: e.target.value,
+                              id: e.target.value,
+                            },
+                          ])
+                        }
+                        className="mx-2"
+                        placeholder={selected.placeholder || "x >= z"}
+                      />
+                      <span>)</span>
+                    </div>
+                  ) : (
                     <button
                       type="button"
                       key={opt.value}
@@ -191,26 +206,7 @@ export default function TacticPopover({
                     >
                       {opt.label}
                     </button>
-                  ))
-                ) : (
-                  <div className="flex items-center">
-                    <span>{selected.className}(</span>
-                    <Input
-                      value={args.length > 0 ? args[0].value : ""}
-                      onChange={(e) =>
-                        setArgs([
-                          {
-                            label: e.target.value,
-                            value: e.target.value,
-                            id: e.target.value,
-                          },
-                        ])
-                      }
-                      className="mx-2"
-                      placeholder="x**2,y**2"
-                    />
-                    <span>)</span>
-                  </div>
+                  ),
                 )}
               </div>
               <div className="flex gap-2">
@@ -227,8 +223,8 @@ export default function TacticPopover({
                   <LatexString latex="<-" /> back
                 </Button>
                 <Button
-                  onClick={() => apply(selected, itemType === "lemma")}
-                  disabled={args.length === 0 || args[0].id === ""}
+                  onClick={() => apply(selected)}
+                  disabled={applyTacticDisabled}
                   className="w-full"
                   variant="primary"
                   size="xs"

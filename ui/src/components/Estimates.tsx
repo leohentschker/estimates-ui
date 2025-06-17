@@ -36,7 +36,7 @@ export default function Estimates(): React.ReactElement {
 
         {/* Main proof editor */}
         <div className="flex flex-col w-full  overflow-y-auto">
-          {/* Mode switcher for assumptions and tactics */}
+          {/* Mode switcher between assumptions and tactics */}
           <ModeSwitcher />
 
           {/* Assumption mode for the proof graph */}

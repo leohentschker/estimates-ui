@@ -1,17 +1,11 @@
-import {
-  DialogContent,
-  DialogDescription,
-  DialogOverlay,
-} from "@radix-ui/react-dialog";
 import classNames from "classnames";
 import { X } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDebounce } from "use-debounce";
 import {
   runProofCode,
   selectCode,
-  selectIsJaspiError,
   selectLoading,
   selectProofError,
   selectPyodideLoaded,
@@ -21,7 +15,7 @@ import {
 import { setShowCode } from "../../features/ui/uiSlice";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { Button } from "../Button";
-import { Dialog, DialogPortal, DialogTitle } from "../Dialog";
+import LoadingState from "../LoadingState";
 import { TypographyH2, TypographyH4 } from "../Typography";
 import OutputErrorBoundary from "./OutputErrorBoundary";
 import TextEditor from "./TextEditor";
@@ -29,9 +23,7 @@ import TextEditor from "./TextEditor";
 function Output(): React.ReactElement {
   const appDispatch = useAppDispatch();
 
-  const [isJaspiErrorDialogOpen, setIsJaspiErrorDialogOpen] = useState(false);
   const pyodideLoaded = useAppSelector(selectPyodideLoaded);
-  const isJaspiError = useAppSelector(selectIsJaspiError);
   const serializedResult = useAppSelector(selectSerializedResult);
   const stdout = useAppSelector(selectStdout);
   const loading = useAppSelector(selectLoading);
@@ -39,12 +31,6 @@ function Output(): React.ReactElement {
   const proofError = useAppSelector(selectProofError);
 
   const [debouncedCode] = useDebounce(code, 200);
-
-  useEffect(() => {
-    if (isJaspiError) {
-      setIsJaspiErrorDialogOpen(true);
-    }
-  }, [isJaspiError]);
 
   useEffect(() => {
     if (!pyodideLoaded) {
@@ -57,36 +43,6 @@ function Output(): React.ReactElement {
 
   return (
     <div className="absolute md:relative w-full md:w-sm flex-shrink-0 border-l border-gray-200 h-full flex flex-col bg-white">
-      {/* Dialog for Jaspi error -- see 
-      https://v8.dev/blog/jspi-ot, https://developer.chrome.com/blog/webassembly-jspi-origin-trial
-       */}
-      <Dialog
-        open={isJaspiErrorDialogOpen}
-        onOpenChange={setIsJaspiErrorDialogOpen}
-      >
-        <DialogPortal>
-          <DialogOverlay className="fixed inset-0 bg-black/40 z-50" />
-          <DialogContent className="fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg">
-            <DialogTitle>Browser Compatibility Error</DialogTitle>
-            <DialogDescription className="mt-4">
-              The web version of estimates only works in Chrome because it
-              relies on a new feature of WebAssembly that is not yet supported
-              in other browsers. See{" "}
-              <a
-                className="text-blue-500 cursor-pointer underline"
-                href="https://developer.chrome.com/blog/webassembly-jspi-origin-trial"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                this Chrome blog post
-              </a>{" "}
-              about WebAssembly JavaScript Promise Integration (JSPI) to learn
-              more.
-            </DialogDescription>
-          </DialogContent>
-        </DialogPortal>
-      </Dialog>
-
       <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <TypographyH2>Code and Outputs</TypographyH2>
         <Button
@@ -109,20 +65,10 @@ function Output(): React.ReactElement {
 
       {/* Loading indicator when pyodide is not loaded */}
       <div className="flex-3 flex flex-col overflow-y-auto">
-        {!pyodideLoaded && (
-          <div className="flex items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" />
-            <span className="ml-2 text-indigo-600">Loading estimates...</span>
-          </div>
-        )}
+        {!pyodideLoaded && <LoadingState message="Loading estimates..." />}
 
         {/* Loading indicator when proof is being processed */}
-        {loading && (
-          <div className="flex items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" />
-            <span className="ml-2 text-indigo-600">Processing...</span>
-          </div>
-        )}
+        {loading && <LoadingState message="Processing..." />}
 
         {/* Console output, things from "print" in Python */}
         {stdout.length > 0 && (
