@@ -19,7 +19,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../Popover";
 import LatexString from "../LatexString";
 
 type Item = Tactic | Lemma;
-type ItemType = "tactic" | "lemma";
 
 type SelectedArg = {
   label: string;
@@ -37,7 +36,6 @@ export default function TacticPopover({
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"select" | "config">("select");
-  const [itemType, setItemType] = useState<ItemType>();
   const [selected, setSelected] = useState<Item>();
   const [args, setArgs] = useState<SelectedArg[]>([]);
 
@@ -46,9 +44,11 @@ export default function TacticPopover({
   const goal = useAppSelector(selectGoal);
   const dispatch = useAppDispatch();
 
-  const apply = (tactic: Tactic | Lemma, isLemma: boolean) => {
+  const apply = (tactic: Tactic | Lemma) => {
     const call = `${tactic.className}(${args.map((a) => a.value).join(", ")})`;
-    dispatch(applyTactic({ nodeId, tactic: call, isLemma }));
+    dispatch(
+      applyTactic({ nodeId, tactic: call, isLemma: tactic.type === "lemma" }),
+    );
     setOpen(false);
   };
 
@@ -75,7 +75,7 @@ export default function TacticPopover({
   );
 
   const argOptions = useMemo(() => {
-    if (itemType !== "tactic" || !selected) return [];
+    if (!selected) return [];
     const tac = selected as Tactic;
     const opts: { label: string; value: string; id: string }[] = [];
     if (tac.arguments.includes("variables"))
@@ -104,15 +104,12 @@ export default function TacticPopover({
     if (tac.arguments.includes("expressions"))
       opts.push({ label: "Expression", value: "Expression", id: "expression" });
     return opts;
-  }, [selected, itemType, variables, hypotheses, goal]);
+  }, [selected, variables, hypotheses, goal]);
 
   const applyTacticDisabled = useMemo(() => {
     if (selected?.arguments.length === 0) return false;
-    if (itemType === "tactic") {
-      return args.length === 0;
-    }
     return args.length === 0 || args[0].id === "";
-  }, [args, itemType]);
+  }, [args, selected]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -135,7 +132,6 @@ export default function TacticPopover({
                     key={t.id}
                     className="cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left"
                     onClick={() => {
-                      setItemType("tactic");
                       setSelected(t);
                       setArgs([]);
                       setStep("config");
@@ -155,7 +151,6 @@ export default function TacticPopover({
                       "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
                     )}
                     onClick={() => {
-                      setItemType("lemma");
                       setArgs([]);
                       setSelected(l);
                       setStep("config");
@@ -171,13 +166,12 @@ export default function TacticPopover({
           {step === "config" && selected && (
             <>
               <div>Apply {selected.label}</div>
-              <div className="text-gray-500">
-                {selected.description}
-              </div>
+              <div className="text-gray-500">{selected.description}</div>
               <div className="flex flex-col gap-2 py-2">
-                {itemType === "tactic" ? (
-                  argOptions.map((opt) => (
-                    opt.id === "expression" ? (
+                {argOptions.map((opt) =>
+                  opt.id === "expression" ? (
+                    <div className="flex items-center" key={opt.id}>
+                      <span>{selected.className}(</span>
                       <Input
                         value={args.length > 0 ? args[0].value : ""}
                         onChange={(e) =>
@@ -189,47 +183,30 @@ export default function TacticPopover({
                             },
                           ])
                         }
-                        placeholder="x >= z"
+                        className="mx-2"
+                        placeholder={selected.placeholder || "x >= z"}
                       />
-                    ) : (
-                      <button
-                        type="button"
-                        key={opt.value}
-                        onClick={() =>
-                          setArgs((prev) =>
-                            prev.includes(opt)
-                              ? prev.filter((a) => a !== opt)
-                              : [opt],
-                          )
-                        }
-                        className={classNames(
-                          "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
-                          args.includes(opt) && "bg-gray-100",
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    )
-                  ))
-                ) : (
-                  <div className="flex items-center">
-                    <span>{selected.className}(</span>
-                    <Input
-                      value={args.length > 0 ? args[0].value : ""}
-                      onChange={(e) =>
-                        setArgs([
-                          {
-                            label: e.target.value,
-                            value: e.target.value,
-                            id: e.target.value,
-                          },
-                        ])
+                      <span>)</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      key={opt.value}
+                      onClick={() =>
+                        setArgs((prev) =>
+                          prev.includes(opt)
+                            ? prev.filter((a) => a !== opt)
+                            : [opt],
+                        )
                       }
-                      className="mx-2"
-                      placeholder="x**2,y**2"
-                    />
-                    <span>)</span>
-                  </div>
+                      className={classNames(
+                        "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left",
+                        args.includes(opt) && "bg-gray-100",
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ),
                 )}
               </div>
               <div className="flex gap-2">
@@ -246,7 +223,7 @@ export default function TacticPopover({
                   <LatexString latex="<-" /> back
                 </Button>
                 <Button
-                  onClick={() => apply(selected, itemType === "lemma")}
+                  onClick={() => apply(selected)}
                   disabled={applyTacticDisabled}
                   className="w-full"
                   variant="primary"
