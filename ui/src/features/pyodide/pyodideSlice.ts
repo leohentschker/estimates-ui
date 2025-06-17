@@ -7,7 +7,7 @@ import {
 } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Edge, Node } from "@xyflow/react";
-import { GOAL_NODE_ID } from "../../metadata/graph";
+import { GOAL_NODE_ID, SORRY_TACTIC } from "../../metadata/graph";
 import type { RootState } from "../../store";
 import {
   addAssumption,
@@ -18,9 +18,7 @@ import {
   removeEdge,
   resetProof,
   setAssumptions,
-  setEdges,
   setGoal,
-  setNodes,
   setVariables,
 } from "../proof/proofSlice";
 import { VISUAL_EDIT_MODE, setEditMode } from "../ui/uiSlice";
@@ -234,16 +232,14 @@ export const convertProofGraphToCode = createAsyncThunk(
       resolutionIds.add(edgeResolutionId);
       const tacticName = (edge.data?.tactic ?? "").toString();
       const isLemma = edge.data?.isLemma ?? false;
-      if (tacticName === "sorry") {
+      if (tacticName === SORRY_TACTIC) {
         if (nGoals > 1) {
           // TODO: add sorry code
           codeLines.push("if p.current_node: p.next_goal();");
         } else {
           // TODO: add sorry code
         }
-      } else if (tacticName === "win") {
-        // TODO: add win code
-      } else if (!["sorry", "win"].includes(tacticName)) {
+      } else {
         if (isLemma) {
           codeLines.push(`p.use_lemma(${tacticName});`);
         } else {
@@ -342,8 +338,6 @@ export const initializeCodegen = createAction("pyodide/initializeCodegen");
 export const codegenListenerMiddleware = createListenerMiddleware();
 codegenListenerMiddleware.startListening({
   matcher: isAnyOf(
-    setNodes,
-    setEdges,
     setVariables,
     setAssumptions,
     addAssumption,

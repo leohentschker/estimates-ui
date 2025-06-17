@@ -1,6 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import { useMemo } from "react";
 import { selectEdges, selectNodes } from "../../../features/proof/proofSlice";
+import { SORRY_TACTIC } from "../../../metadata/graph";
 import { useAppSelector } from "../../../store";
 import { Button } from "../../Button";
 import LatexString from "../LatexString";
@@ -69,7 +70,7 @@ export default function TacticNode({
           id={`${id}-tactic-bottom`}
         />
       )}
-      {(!outboundEdge || outboundEdge.data?.tactic === "sorry") && (
+      {(!outboundEdge || outboundEdge.data?.tactic === SORRY_TACTIC) && (
         <TacticPopover nodeId={id}>
           <Button variant="outline" size="xs">
             <LatexString latex="+" /> apply tactic

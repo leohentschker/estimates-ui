@@ -3,6 +3,7 @@ import { BaseEdge, MarkerType, getStraightPath } from "@xyflow/react";
 import { EdgeLabelRenderer } from "@xyflow/react";
 import { PencilIcon } from "lucide-react";
 import { removeEdge } from "../../features/proof/proofSlice";
+import { SORRY_TACTIC } from "../../metadata/graph";
 import { useAppDispatch } from "../../store";
 import LatexString from "./LatexString";
 import TacticPopover from "./Nodes/TacticPopover";
@@ -49,7 +50,7 @@ export default function TacticEdge({
         >
           <div className="flex items-center gap-2">
             <span className="text-xs">{data.tactic?.replace("_", " ")}</span>
-            {data.tactic !== "sorry" && (
+            {data.tactic !== SORRY_TACTIC && (
               <div className="text-xs absolute -right-4 top-1/2 -translate-y-3 flex items-center gap-1/2 justify-center">
                 <TacticPopover nodeId={source}>
                   <PencilIcon className="w-2 h-2 cursor-pointer hover:text-blue-500" />
