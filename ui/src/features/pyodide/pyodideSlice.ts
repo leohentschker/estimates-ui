@@ -7,7 +7,6 @@ import {
 } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Edge, Node } from "@xyflow/react";
-import { GOAL_EDGE_TYPE } from "../../metadata/graph";
 import type { RootState } from "../../store";
 import {
   addAssumption,
