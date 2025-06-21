@@ -11,9 +11,8 @@ import {
 import type { WritableDraft } from "immer";
 import { v4 as uuidv4 } from "uuid";
 import {
-  GOAL_NODE_ID,
+  GOAL_EDGE_TYPE,
   GOAL_NODE_TYPE,
-  SORRY_TACTIC,
   TACTIC_EDGE_TYPE,
   TACTIC_NODE_TYPE,
 } from "../../metadata/graph";
@@ -125,17 +124,7 @@ export const proofSlice = createSlice({
       );
       const newNodes = state.nodes.filter((n) => n.id !== target?.id);
 
-      state.edges = [
-        ...newEdges,
-        {
-          id: uuidv4(),
-          source: edgeSource,
-          target: GOAL_NODE_ID,
-          type: TACTIC_EDGE_TYPE,
-          data: { tactic: SORRY_TACTIC },
-          animated: true,
-        },
-      ];
+      state.edges = newEdges;
       state.nodes = newNodes;
     },
     resetProof: (state) => {
@@ -145,22 +134,8 @@ export const proofSlice = createSlice({
       if (!sourceNode) {
         return;
       }
-      const sinkNode = state.nodes.find(
-        (node) => !state.edges.some((edge) => edge.source === node.id),
-      );
-      if (!sinkNode) {
-        return;
-      }
-      state.nodes = [sourceNode, sinkNode];
-      state.edges = [
-        {
-          id: uuidv4(),
-          source: sourceNode.id,
-          target: sinkNode.id,
-          type: TACTIC_EDGE_TYPE,
-          data: { tactic: SORRY_TACTIC },
-        },
-      ];
+      state.nodes = [sourceNode];
+      state.edges = [];
     },
     loadProblem: (
       state,
@@ -186,7 +161,17 @@ export const proofSlice = createSlice({
     ) => {
       const newNodeId = uuidv4();
       const newNodes = [
-        ...state.nodes,
+        // update the node we're applying tactic to with the applied tactic to store what we did to it
+        ...state.nodes.map((n) =>
+          n.id === action.payload.nodeId
+            ? {
+                ...n,
+                data: { ...n.data, appliedTactic: action.payload.tactic },
+              }
+            : n,
+        ),
+
+        // add new node for the tactic
         {
           id: newNodeId,
           data: {
@@ -199,23 +184,13 @@ export const proofSlice = createSlice({
         },
       ];
 
-      const newEdgeId = uuidv4();
+      const edgeId = `${action.payload.nodeId}_${newNodeId}`;
+
       const newEdges = [
         // remove edges coming out of node we're applying tactic to
         ...state.edges.filter((edge) => edge.source !== action.payload.nodeId),
         {
-          id: newEdgeId,
-          source: newNodeId,
-          target: GOAL_NODE_ID,
-          type: TACTIC_EDGE_TYPE,
-          data: {
-            tactic: SORRY_TACTIC,
-          },
-          animated: true,
-          deletable: false,
-        },
-        {
-          id: uuidv4(),
+          id: edgeId,
           source: action.payload.nodeId,
           target: newNodeId,
           type: TACTIC_EDGE_TYPE,
@@ -243,9 +218,6 @@ export const proofSlice = createSlice({
       if (!action.payload) {
         return;
       }
-      if (!action.payload) {
-        return;
-      }
       const {
         result: pyodideResult,
         error: pyodideError,
@@ -262,22 +234,19 @@ export const proofSlice = createSlice({
       if (pyodideResult.error) {
         return;
       }
-      const pyodideNodes = pyodideResult.output?.nodes as {
-        id: string;
-        label: string;
-        tactic: string;
-        sorry_free: boolean;
-      }[];
-      const pyodideEdges = pyodideResult.output?.edges as {
-        id: string;
-        source: string;
-        target: string;
-        label: string;
-      }[];
+      const pyodideNodes = pyodideResult.output?.nodes;
+      const pyodideEdges = pyodideResult.output?.edges || [];
 
       const flowEdges: Edge[] = [];
       const flowNodes: Node[] = [];
-      for (const n of pyodideNodes) {
+
+      const recentUnappliedTacticEdge = state.edges.find(
+        (e) => e.data?.resolved === false,
+      );
+      const recentUnappliedTactic = recentUnappliedTacticEdge?.data?.tactic;
+
+      for (const n of pyodideNodes || []) {
+        const existingNode = state.nodes.find((node) => node.id === n.id);
         flowNodes.push({
           id: n.id,
           position: {
@@ -288,42 +257,46 @@ export const proofSlice = createSlice({
           type: TACTIC_NODE_TYPE,
           data: {
             label: n.label,
+            sorryFree: n.sorry_free,
+            nChildren: n.n_children,
+            appliedTactic: existingNode?.data.appliedTactic,
           },
         });
-        const edgesFromNode = pyodideEdges.filter((e) => e.source === n.id);
 
-        const existingNodeEdge = state.edges.find((e) => e.source === n.id);
+        const edgesFromNode = pyodideEdges.filter((e) => e.source === n.id);
 
         if (!edgesFromNode.length) {
           if (n.sorry_free) {
-            flowEdges.push({
-              id: uuidv4(),
-              source: n.id,
-              target: GOAL_NODE_ID,
-              type: TACTIC_EDGE_TYPE,
-              data: {
-                tactic: existingNodeEdge?.data?.tactic || n.tactic,
-                resolved: true,
+            const subProblemGoalNode = {
+              id: `${n.id}-goal`,
+              position: {
+                x: 0,
+                y: 0,
               },
               deletable: false,
-            });
-          } else {
+              type: GOAL_NODE_TYPE,
+              data: {
+                label: n.label,
+              },
+            };
+            flowNodes.push(subProblemGoalNode);
+
             flowEdges.push({
-              id: uuidv4(),
+              id: `${n.id}-goal`,
               source: n.id,
-              target: GOAL_NODE_ID,
-              type: TACTIC_EDGE_TYPE,
-              data: { tactic: SORRY_TACTIC, resolved: true },
-              animated: true,
+              target: subProblemGoalNode.id,
+              type: GOAL_EDGE_TYPE,
+              data: {
+                tactic:
+                  recentUnappliedTactic || existingNode?.data.appliedTactic,
+                resolved: true,
+              },
               deletable: false,
             });
           }
         }
       }
 
-      const unresolvedEdge = state.edges.find(
-        (e) => e.data?.resolved === false,
-      );
       const resolutionId = uuidv4();
       for (const e of pyodideEdges) {
         const edgeId = `${e.source}_${e.target}`;
@@ -331,16 +304,15 @@ export const proofSlice = createSlice({
           (edge) => edge.id === `${e.source}_${e.target}`,
         );
 
-        const tactic = existingEdge
-          ? existingEdge?.data?.tactic
-          : unresolvedEdge
-            ? unresolvedEdge?.data?.tactic
-            : e.label;
-        const isLemma = existingEdge
-          ? existingEdge?.data?.isLemma
-          : unresolvedEdge
-            ? unresolvedEdge?.data?.isLemma
-            : false;
+        if (!existingEdge && !recentUnappliedTacticEdge) {
+          continue;
+        }
+
+        const tactic = existingEdge?.data?.tactic || recentUnappliedTactic;
+        const isLemma =
+          existingEdge?.data?.isLemma ||
+          recentUnappliedTacticEdge?.data?.isLemma ||
+          false;
 
         flowEdges.push({
           id: edgeId,
@@ -355,19 +327,6 @@ export const proofSlice = createSlice({
           deletable: false,
         });
       }
-
-      flowNodes.push({
-        id: GOAL_NODE_ID,
-        position: {
-          x: 0,
-          y: 0,
-        },
-        deletable: false,
-        type: GOAL_NODE_TYPE,
-        data: {
-          label: state.goal.input,
-        },
-      });
       const layoutResult = layoutGraphElements(flowNodes, flowEdges);
       state.nodes = layoutResult.nodes as WritableDraft<Node[]>;
       state.edges = layoutResult.edges;

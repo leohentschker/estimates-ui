@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
+import classNames from "classnames";
 import { useMemo } from "react";
-import { selectEdges, selectNodes } from "../../../features/proof/proofSlice";
-import { SORRY_TACTIC } from "../../../metadata/graph";
+import { selectEdges } from "../../../features/proof/proofSlice";
 import { useAppSelector } from "../../../store";
 import { Button } from "../../Button";
 import LatexString from "../LatexString";
@@ -16,24 +16,14 @@ export default function TacticNode({
   id: string;
   data: {
     label: string;
+    sorryFree: boolean;
   };
 }) {
   const simplifiedResult = data.label;
 
   const edges = useAppSelector(selectEdges);
-  const nodes = useAppSelector(selectNodes);
   const outboundEdge = edges.find((edge) => edge.source === id);
   const isSourceNode = edges.some((edge) => edge.target === id);
-
-  const baseNodeState = useMemo(() => {
-    const sourceNode = nodes.find(
-      (node) => !edges.some((edge) => edge.target === node.id),
-    );
-    if (!sourceNode) return null;
-    const label = sourceNode.data.label;
-    if (typeof label !== "string") return null;
-    return parseNodeState(label);
-  }, [edges, nodes]);
 
   const { variables, hypotheses, goal } = useMemo(
     () => parseNodeState(simplifiedResult),
@@ -46,14 +36,20 @@ export default function TacticNode({
         <Handle type="target" position={Position.Top} id={`${id}-top`} />
       )}
       {simplifiedResult ? (
-        <div className="border border-gray-300 rounded-md p-2 flex flex-col gap-2 max-w-48 px-4 text-xs">
+        <div
+          className={classNames(
+            "border rounded-md p-2 flex flex-col gap-2 max-w-64 px-4 text-xs border-dotted",
+            {
+              "border-green-800": data.sorryFree,
+              "border-yellow-300": !data.sorryFree,
+            },
+          )}
+        >
           <RenderedNodeText text={variables.join(", ")} />
           {hypotheses.map((line) => (
             <RenderedNodeText key={line} text={line} />
           ))}
-          {goal !== baseNodeState?.goal && (
-            <RenderedNodeText text={`|- ${goal}`} />
-          )}
+          <RenderedNodeText text={`|- ${goal}`} />
         </div>
       ) : (
         <div className="border border-gray-300 rounded-md p-2 w-48 items-center justify-center text-center">
@@ -70,7 +66,7 @@ export default function TacticNode({
           id={`${id}-tactic-bottom`}
         />
       )}
-      {(!outboundEdge || outboundEdge.data?.tactic === SORRY_TACTIC) && (
+      {!outboundEdge && (
         <TacticPopover nodeId={id}>
           <Button variant="outline" size="xs">
             <LatexString latex="+" /> apply tactic
