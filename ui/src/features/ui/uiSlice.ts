@@ -2,6 +2,9 @@ import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 
 const isMobile = () => {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent,
   );

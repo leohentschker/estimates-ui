@@ -7,7 +7,6 @@ import {
 } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Edge, Node } from "@xyflow/react";
-import { GOAL_NODE_ID, SORRY_TACTIC } from "../../metadata/graph";
 import type { RootState } from "../../store";
 import {
   addAssumption,
@@ -25,8 +24,13 @@ import { VISUAL_EDIT_MODE, setEditMode } from "../ui/uiSlice";
 import { loadAndRunPyodide } from "./loader";
 
 type Graph = {
-  nodes: { id: string; label: string; tactic: string; sorry_free: boolean }[];
-  edges: { source: string; target: string; label: string }[];
+  nodes: {
+    id: string;
+    label: string;
+    sorry_free: boolean;
+    n_children: number;
+  }[];
+  edges: { source: string; target: string }[];
   proof_complete: boolean;
 };
 
@@ -63,31 +67,31 @@ export const loadCustomPyodide = createAsyncThunk(
         const codePrefix = code.split("\n").slice(0, -1).join("\n");
         const codeSuffix = code.split("\n").pop();
         const augmentedCode = `
+import hashlib
+def consistent_hash(value: str) -> int:
+    return int.from_bytes(hashlib.sha256(value.encode('utf-8')).digest(), 'big')
+
 _id_map = {}
-_counter = 0
 _nodes = []
 _edges = []
-output = {}
 def traverse(node):
-    global _counter
     if node not in _id_map:
-        node_id = f"n{_counter}"
+        node_id = f"n{consistent_hash(str(node.proof_state))}"
         _id_map[node] = node_id
         label = str(node.proof_state)
-        _nodes.append(dict(id=node_id, label=label, tactic=str(node.tactic) or "", sorry_free=node.is_sorry_free()))
-        _counter += 1
+        _nodes.append(dict(id=node_id, label=label, sorry_free=node.is_sorry_free(), n_children=len(node.children)))
     for child in node.children:
         traverse(child)
         parent_id = _id_map[node]
         child_id = _id_map[child]
-        tactic_label = str(node.tactic) or ""
-        _edges.append(dict(source=parent_id, target=child_id, label=tactic_label))
+        _edges.append(dict(source=parent_id, target=child_id))
 ${codePrefix}
 out = ${codeSuffix?.trim() ? codeSuffix : "None"}
 traverse(p.proof_tree)
 graph=dict(nodes=_nodes, edges=_edges, proof_complete=p.proof_tree.is_sorry_free())
 out
 `.trim();
+
         try {
           result = await pyodide.runPythonAsync(augmentedCode);
         } catch (error) {
@@ -221,8 +225,6 @@ export const convertProofGraphToCode = createAsyncThunk(
       }
     }
 
-    const nGoals = edges.filter((e) => e.target === GOAL_NODE_ID).length;
-
     const resolutionIds = new Set<string>([]);
     for (const { edge } of dfsSortedNodesAndEdges) {
       const edgeResolutionId = (edge.data?.resolutionId ?? "").toString();
@@ -232,19 +234,18 @@ export const convertProofGraphToCode = createAsyncThunk(
       resolutionIds.add(edgeResolutionId);
       const tacticName = (edge.data?.tactic ?? "").toString();
       const isLemma = edge.data?.isLemma ?? false;
-      if (tacticName === SORRY_TACTIC) {
-        if (nGoals > 1) {
-          // TODO: add sorry code
-          codeLines.push("if p.current_node: p.next_goal();");
-        } else {
-          // TODO: add sorry code
-        }
+      if (isLemma) {
+        codeLines.push(`p.use_lemma(${tacticName});`);
       } else {
-        if (isLemma) {
-          codeLines.push(`p.use_lemma(${tacticName});`);
-        } else {
-          codeLines.push(`p.use(${tacticName});`);
-        }
+        codeLines.push(`p.use(${tacticName});`);
+      }
+
+      const targetNode = nodes.find((n) => n.id === edge.target);
+      if (!targetNode) {
+        continue;
+      }
+      if (targetNode.data?.nChildren === 0 && !targetNode.data?.sorryFree) {
+        codeLines.push("if p.current_node: p.next_goal();");
       }
     }
     codeLines.push("p.proof()");
@@ -341,7 +342,6 @@ codegenListenerMiddleware.startListening({
     setVariables,
     setAssumptions,
     addAssumption,
-    addVariables,
     applyTactic,
     setGoal,
     addVariables,
