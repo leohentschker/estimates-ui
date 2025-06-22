@@ -20,6 +20,7 @@ interface UISlice {
   executionMode: "auto" | "manual";
   isMobile: boolean;
   editMode: typeof CODE_EDIT_MODE | typeof VISUAL_EDIT_MODE;
+  showExamplesModal: boolean;
 }
 
 const initialState: UISlice = {
@@ -29,6 +30,7 @@ const initialState: UISlice = {
   executionMode: "auto",
   isMobile: isMobile(),
   editMode: VISUAL_EDIT_MODE,
+  showExamplesModal: false,
 };
 
 const uiSlice = createSlice({
@@ -53,6 +55,9 @@ const uiSlice = createSlice({
     ) => {
       state.editMode = action.payload;
     },
+    setShowExamplesModal: (state, action: PayloadAction<boolean>) => {
+      state.showExamplesModal = action.payload;
+    },
   },
 });
 
@@ -62,6 +67,7 @@ export const {
   setMode,
   setExecutionMode,
   setEditMode,
+  setShowExamplesModal,
 } = uiSlice.actions;
 
 export const selectShowTutorial = (state: RootState) => state.ui.showTutorial;
@@ -70,4 +76,6 @@ export const selectMode = (state: RootState) => state.ui.mode;
 export const selectExecutionMode = (state: RootState) => state.ui.executionMode;
 export const selectIsMobile = (state: RootState) => state.ui.isMobile;
 export const selectEditMode = (state: RootState) => state.ui.editMode;
+export const selectShowExamplesModal = (state: RootState) =>
+  state.ui.showExamplesModal;
 export default uiSlice.reducer;

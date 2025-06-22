@@ -38,7 +38,7 @@ export default function TacticNode({
       {simplifiedResult ? (
         <div
           className={classNames(
-            "border rounded-md p-2 flex flex-col gap-2 max-w-64 px-4 text-xs border-dotted",
+            "border rounded-md p-2 flex flex-col gap-2 max-w-64 px-4 text-xs",
             {
               "border-green-800": data.sorryFree,
               "border-yellow-300": !data.sorryFree,

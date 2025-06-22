@@ -88,7 +88,7 @@ export default function VisualEditor(): React.ReactElement {
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
       </ReactFlow>
-      <div className="absolute top-0 right-0 p-4 z-1000">
+      <div className="absolute top-0 right-0 p-4 z-10">
         <Button onClick={() => appDispatch(resetProof())}>
           <RecycleIcon className="w-4 h-4" />
           Reset

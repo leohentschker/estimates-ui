@@ -2,8 +2,10 @@ import { BookOpen, Code, Network } from "lucide-react";
 import {
   selectIsMobile,
   selectShowCode,
+  selectShowExamplesModal,
   selectShowTutorial,
   setShowCode,
+  setShowExamplesModal,
   setShowTutorial,
 } from "../../features/ui/uiSlice";
 import { useAppDispatch, useAppSelector } from "../../store";
@@ -13,6 +15,7 @@ import TopBarButton from "./TopBarButton";
 export default function TopBar(): React.ReactElement {
   const showTutorials = useAppSelector(selectShowTutorial);
   const showCode = useAppSelector(selectShowCode);
+  const showExamplesModal = useAppSelector(selectShowExamplesModal);
   const dispatch = useAppDispatch();
 
   const isMobile = useAppSelector(selectIsMobile);
@@ -47,6 +50,16 @@ export default function TopBar(): React.ReactElement {
             onClick={() => {
               dispatch(setShowTutorial(false));
               dispatch(setShowCode(false));
+            }}
+          />
+        )}
+        {!isMobile && (
+          <TopBarButton
+            icon={<Network className="h-4 w-4" />}
+            label="Examples"
+            active={showExamplesModal}
+            onClick={() => {
+              dispatch(setShowExamplesModal(!showExamplesModal));
             }}
           />
         )}
