@@ -7,6 +7,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { RecycleIcon } from "lucide-react";
+import { useMemo } from "react";
 import {
   onEdgesChange,
   onNodesChange,
@@ -19,6 +20,7 @@ import {
   selectPyodideLoaded,
 } from "../../features/pyodide/pyodideSlice";
 import {
+  GOAL_EDGE_TYPE,
   GOAL_NODE_TYPE,
   TACTIC_EDGE_TYPE,
   TACTIC_NODE_TYPE,
@@ -40,13 +42,25 @@ export default function VisualEditor(): React.ReactElement {
   const pyodideLoading = useAppSelector(selectLoading);
 
   const nodeTypes: NodeTypes = {
-    [GOAL_NODE_TYPE]: GoalNode,
     [TACTIC_NODE_TYPE]: TacticNode,
+    [GOAL_NODE_TYPE]: GoalNode,
   };
 
   const edgeTypes: EdgeTypes = {
     [TACTIC_EDGE_TYPE]: TacticEdge,
+    [GOAL_EDGE_TYPE]: TacticEdge,
   };
+
+  // TODO: this is a hack to make the graph fit the screen, we should find a better way to do this
+  const padding = useMemo(() => {
+    if (nodes.length === 1) {
+      return 2.2;
+    }
+    if (nodes.length === 2) {
+      return 1;
+    }
+    return 0.5;
+  }, [nodes]);
 
   if (pyodideLoading || !pyodideLoaded) {
     return <LoadingState message="Initializing builder..." />;
@@ -58,7 +72,7 @@ export default function VisualEditor(): React.ReactElement {
         nodes={nodes}
         edges={edges}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding }}
         draggable={false}
         nodesDraggable={true}
         nodesConnectable={false}
@@ -74,7 +88,7 @@ export default function VisualEditor(): React.ReactElement {
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
       </ReactFlow>
-      <div className="absolute top-0 right-0 p-4 z-1000">
+      <div className="absolute top-0 right-0 p-4 z-10">
         <Button onClick={() => appDispatch(resetProof())}>
           <RecycleIcon className="w-4 h-4" />
           Reset

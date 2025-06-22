@@ -16,7 +16,6 @@ import {
 } from "../../features/proof/proofSlice";
 import { selectProofComplete } from "../../features/pyodide/pyodideSlice";
 import { selectIsMobile, setMode } from "../../features/ui/uiSlice";
-import { GOAL_NODE_ID, SORRY_TACTIC } from "../../metadata/graph";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { Button } from "../Button";
 
@@ -54,12 +53,10 @@ export default function TutorialExample({
       return null;
     }
 
-    const incompleteNodes = nodes
-      .filter((node) => node.id !== GOAL_NODE_ID)
-      .filter((node) => {
-        const outboundEdge = edges.find((edge) => edge.source === node.id);
-        return !outboundEdge || outboundEdge.data?.tactic === SORRY_TACTIC;
-      });
+    const incompleteNodes = nodes.filter((node) => {
+      const outboundEdge = edges.find((edge) => edge.source === node.id);
+      return !outboundEdge;
+    });
     if (tactic.position === "last") {
       return incompleteNodes[incompleteNodes.length - 1];
     }

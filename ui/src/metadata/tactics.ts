@@ -92,6 +92,14 @@ export const AVAILABLE_TACTICS: Tactic[] = [
     arguments: ["expressions"],
     type: "tactic",
   },
+  {
+    id: "trivial",
+    label: "Trivial",
+    description: "A tactic to prove a goal that is trivially true.",
+    className: "Trivial",
+    arguments: [],
+    type: "tactic",
+  },
 ];
 
 export const AVAILABLE_LEMMAS: Lemma[] = [
