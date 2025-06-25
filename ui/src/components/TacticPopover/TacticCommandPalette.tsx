@@ -210,7 +210,7 @@ export default function TacticCommandPalette({
   return (
     <div className="flex gap-4 max-w-full">
       {(mobileStep === "search" || !isMobile) && (
-        <div className="flex flex-3 flex-col gap-2 border-r border-gray-200 pr-4 h-64">
+        <div className="flex flex-3 flex-col gap-2 md:border-r md:border-gray-200 md:pr-4 h-64">
           <Input
             autoFocus
             value={search}
