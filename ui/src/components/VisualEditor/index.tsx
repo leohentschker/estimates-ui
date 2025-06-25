@@ -2,6 +2,7 @@ import {
   Background,
   BackgroundVariant,
   type EdgeTypes,
+  Node,
   type NodeTypes,
   ReactFlow,
 } from "@xyflow/react";
@@ -54,10 +55,10 @@ export default function VisualEditor(): React.ReactElement {
   // TODO: this is a hack to make the graph fit the screen, we should find a better way to do this
   const padding = useMemo(() => {
     if (nodes.length === 1) {
-      return 2.2;
+      return 3.5;
     }
     if (nodes.length === 2) {
-      return 1;
+      return 2;
     }
     return 0.5;
   }, [nodes]);
@@ -72,7 +73,7 @@ export default function VisualEditor(): React.ReactElement {
         nodes={nodes}
         edges={edges}
         fitView
-        fitViewOptions={{ padding }}
+        fitViewOptions={{ padding, includeHiddenNodes: true }}
         draggable={false}
         nodesDraggable={true}
         nodesConnectable={false}
@@ -80,7 +81,6 @@ export default function VisualEditor(): React.ReactElement {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         contentEditable={false}
-        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0.1}
         maxZoom={4}
         onNodesChange={(changes) => appDispatch(onNodesChange(changes))}
