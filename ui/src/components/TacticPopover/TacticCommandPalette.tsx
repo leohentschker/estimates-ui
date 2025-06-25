@@ -33,21 +33,18 @@ function TacticSelectListOption({
   selected,
 }: { item: Item; onClick: () => void; selected: boolean }) {
   return (
-    <div>
-      <button
-        type="button"
-        className={classNames(
-          "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left text-sm",
-          {
-            "bg-gray-100": selected,
-          },
-        )}
-        onClick={onClick}
-      >
-        <div className="font-bold">{item.label}</div>
-        <div className="text-gray-500 line-clamp-1">{item.description}</div>
-      </button>
-    </div>
+    <button
+      type="button"
+      className={classNames(
+        "cursor-pointer hover:bg-gray-100 rounded-md p-2 text-left text-sm",
+        {
+          "bg-gray-100": selected,
+        },
+      )}
+      onClick={onClick}
+    >
+      <div className="font-bold">{item.label}</div>
+    </button>
   );
 }
 
@@ -213,7 +210,7 @@ export default function TacticCommandPalette({
   return (
     <div className="flex gap-4 max-w-full">
       {(mobileStep === "search" || !isMobile) && (
-        <div className="flex flex-2 flex-col gap-2 border-r border-gray-200 pr-4 h-72">
+        <div className="flex flex-3 flex-col gap-2 border-r border-gray-200 pr-4 h-64">
           <Input
             autoFocus
             value={search}
@@ -221,7 +218,7 @@ export default function TacticCommandPalette({
             className="mb-4"
             placeholder="Search for a tactic or lemma"
           />
-          <div className="overflow-y-auto">
+          <div className="overflow-y-auto flex flex-wrap gap-1">
             {tacticOptions.map((t) => (
               <TacticSelectListOption
                 key={t.id}
@@ -251,7 +248,7 @@ export default function TacticCommandPalette({
       )}
 
       {selected && (mobileStep === "apply" || !isMobile) && (
-        <div className="flex-3 flex flex-col gap-4 max-w-full">
+        <div className="flex-4 flex flex-col gap-4 max-w-full">
           <div className="font-bold text-sm">Apply {selected.label}</div>
           <div className="flex flex-col gap-2 overflow-y-auto flex-1">
             <div className="text-gray-500 text-sm">{selected.description}</div>
