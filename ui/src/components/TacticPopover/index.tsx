@@ -13,7 +13,7 @@ export default function TacticPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent className="bg-white z-200000 w-full lg:w-2xl">
+      <PopoverContent className="bg-white z-200000 w-48 lg:w-2xl">
         <TacticCommandPalette nodeId={nodeId} close={() => setOpen(false)} />
       </PopoverContent>
     </Popover>
