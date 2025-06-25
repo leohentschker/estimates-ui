@@ -232,16 +232,15 @@ export const convertProofGraphToCode = createAsyncThunk(
       if (edgeResolutionId && resolutionIds.has(edgeResolutionId)) {
         continue;
       }
-      if (edge.type === SPLIT_EDGE_TYPE) {
-        continue;
-      }
-      resolutionIds.add(edgeResolutionId);
-      const tacticName = (edge.data?.tactic ?? "").toString();
-      const isLemma = edge.data?.isLemma ?? false;
-      if (isLemma) {
-        codeLines.push(`p.use_lemma(${tacticName});`);
-      } else {
-        codeLines.push(`p.use(${tacticName});`);
+      if (edge.type !== SPLIT_EDGE_TYPE) {
+        resolutionIds.add(edgeResolutionId);
+        const tacticName = (edge.data?.tactic ?? "").toString();
+        const isLemma = edge.data?.isLemma ?? false;
+        if (isLemma) {
+          codeLines.push(`p.use_lemma(${tacticName});`);
+        } else {
+          codeLines.push(`p.use(${tacticName});`);
+        }
       }
 
       const targetNode = nodes.find((n) => n.id === edge.target);
