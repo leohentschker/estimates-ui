@@ -4,9 +4,9 @@ import { useMemo } from "react";
 import { selectEdges } from "../../../features/proof/proofSlice";
 import { useAppSelector } from "../../../store";
 import { Button } from "../../Button";
+import TacticPopover from "../../TacticPopover";
 import LatexString from "../LatexString";
 import RenderedNodeText from "./RenderedNodeText";
-import TacticPopover from "./TacticPopover";
 import { parseNodeState } from "./nodeStateHelpers";
 
 export default function TacticNode({
@@ -69,7 +69,7 @@ export default function TacticNode({
       {!outboundEdge && (
         <TacticPopover nodeId={id}>
           <Button variant="outline" size="xs">
-            <LatexString latex="+" /> apply tactic
+            <LatexString latex="+" /> Apply tactic
           </Button>
         </TacticPopover>
       )}

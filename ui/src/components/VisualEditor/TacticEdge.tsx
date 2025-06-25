@@ -1,11 +1,11 @@
-import { BaseEdge, MarkerType, getStraightPath } from "@xyflow/react";
+import { BaseEdge, MarkerType, getBezierPath } from "@xyflow/react";
 
 import { EdgeLabelRenderer } from "@xyflow/react";
 import { PencilIcon } from "lucide-react";
 import { removeEdge } from "../../features/proof/proofSlice";
 import { useAppDispatch } from "../../store";
+import TacticPopover from "../TacticPopover";
 import LatexString from "./LatexString";
-import TacticPopover from "./Nodes/TacticPopover";
 
 export default function TacticEdge({
   id,
@@ -27,7 +27,7 @@ export default function TacticEdge({
   const appDispatch = useAppDispatch();
   const handleRemoveEdge = (edgeId: string) => appDispatch(removeEdge(edgeId));
 
-  const [edgePath, labelX, labelY] = getStraightPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     targetX,

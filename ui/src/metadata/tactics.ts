@@ -34,7 +34,7 @@ export const AVAILABLE_TACTICS: Tactic[] = [
     id: "contrapositive",
     label: "Contrapositive",
     description:
-      'Contrapose the goal and a hypothesis.  If the hypothesis is a proposition, replace the goal with the negation of the hypothesis, and the hypothesis with the negation of the goal.  If the hypothesis is not a proposition, this becomes a proof by contradiction, adding the negation of the goal as a hypothesis, and "false" as the goal.',
+      'If the hypothesis is a proposition, replace the goal with the negation of the hypothesis, and the hypothesis with the negation of the goal.  Otherwise, this becomes a proof by contradiction, adding the negation of the goal as a hypothesis, and "false" as the goal.',
     className: "Contrapose",
     arguments: ["hypotheses", "this"],
     type: "tactic",
@@ -95,7 +95,8 @@ export const AVAILABLE_TACTICS: Tactic[] = [
   {
     id: "trivial",
     label: "Trivial",
-    description: "A tactic to prove a goal that is trivially true.",
+    description:
+      "A tactic to prove a goal that is trivially true, can be applied to any goal.",
     className: "Trivial",
     arguments: [],
     type: "tactic",
@@ -106,7 +107,8 @@ export const AVAILABLE_LEMMAS: Lemma[] = [
   {
     id: "am-gm-inequality",
     label: "AM-GM Inequality",
-    description: "The arithmetic mean-geometric mean inequality.",
+    description:
+      "The arithmetic mean-geometric mean inequality, can be applied to expressions of the form `a**2 + b**2 + ... + z**2`.",
     className: "Amgm",
     arguments: ["expressions"],
     placeholder: "x**2,y**2",

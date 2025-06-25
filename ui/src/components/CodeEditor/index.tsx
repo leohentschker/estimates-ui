@@ -42,7 +42,7 @@ function Output(): React.ReactElement {
   }, [pyodideLoaded, debouncedCode, appDispatch]);
 
   return (
-    <div className="absolute md:relative w-full md:w-sm flex-shrink-0 border-l border-gray-200 h-full flex flex-col bg-white">
+    <div className="absolute md:relative w-full md:w-sm flex-shrink-0 border-l border-gray-200 h-full flex flex-col bg-white z-20">
       <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <TypographyH2>Code and Outputs</TypographyH2>
         <Button
