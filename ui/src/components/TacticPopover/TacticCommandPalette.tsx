@@ -45,7 +45,7 @@ function TacticSelectListOption({
         onClick={onClick}
       >
         <div className="font-bold">{item.label}</div>
-        <div className="text-gray-500 line-clamp-2">{item.description}</div>
+        <div className="text-gray-500 line-clamp-1">{item.description}</div>
       </button>
     </div>
   );

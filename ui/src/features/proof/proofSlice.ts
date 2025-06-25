@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   GOAL_EDGE_TYPE,
   GOAL_NODE_TYPE,
+  SPLIT_EDGE_TYPE,
   TACTIC_EDGE_TYPE,
   TACTIC_NODE_TYPE,
 } from "../../metadata/graph";
@@ -247,6 +248,8 @@ export const proofSlice = createSlice({
 
       for (const n of pyodideNodes || []) {
         const existingNode = state.nodes.find((node) => node.id === n.id);
+        const edgesFromNode = pyodideEdges.filter((e) => e.source === n.id);
+
         flowNodes.push({
           id: n.id,
           position: {
@@ -263,7 +266,35 @@ export const proofSlice = createSlice({
           },
         });
 
-        const edgesFromNode = pyodideEdges.filter((e) => e.source === n.id);
+        if (edgesFromNode.length > 1) {
+          flowNodes.push({
+            id: `${n.id}-split`,
+            position: {
+              x: 0,
+              y: 0,
+            },
+            deletable: false,
+            type: TACTIC_NODE_TYPE,
+            data: {
+              label: n.label,
+              sorryFree: n.sorry_free,
+              nChildren: n.n_children,
+              appliedTactic: existingNode?.data.appliedTactic,
+            },
+          });
+          flowEdges.push({
+            id: `${n.id}-split`,
+            source: n.id,
+            target: `${n.id}-split`,
+            type: TACTIC_EDGE_TYPE,
+            data: {
+              tactic: existingNode?.data.appliedTactic,
+              isLemma: existingNode?.data.isLemma,
+              resolved: true,
+            },
+            deletable: false,
+          });
+        }
 
         if (!edgesFromNode.length) {
           if (n.sorry_free) {
@@ -314,11 +345,14 @@ export const proofSlice = createSlice({
           recentUnappliedTacticEdge?.data?.isLemma ||
           false;
 
+        const isSplitSource =
+          pyodideEdges.filter((otherEdge) => otherEdge.source === e.source)
+            .length > 1;
         flowEdges.push({
           id: edgeId,
-          source: e.source,
+          source: isSplitSource ? `${e.source}-split` : e.source,
           target: e.target,
-          type: TACTIC_EDGE_TYPE,
+          type: isSplitSource ? SPLIT_EDGE_TYPE : TACTIC_EDGE_TYPE,
           data: {
             tactic,
             resolutionId: existingEdge?.data?.resolutionId || resolutionId,
