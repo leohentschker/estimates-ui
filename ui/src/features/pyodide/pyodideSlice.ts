@@ -7,6 +7,7 @@ import {
 } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Edge, Node } from "@xyflow/react";
+import { SPLIT_EDGE_TYPE } from "../../metadata/graph";
 import type { RootState } from "../../store";
 import {
   addAssumption,
@@ -231,6 +232,9 @@ export const convertProofGraphToCode = createAsyncThunk(
       if (edgeResolutionId && resolutionIds.has(edgeResolutionId)) {
         continue;
       }
+      if (edge.type === SPLIT_EDGE_TYPE) {
+        continue;
+      }
       resolutionIds.add(edgeResolutionId);
       const tacticName = (edge.data?.tactic ?? "").toString();
       const isLemma = edge.data?.isLemma ?? false;
@@ -249,7 +253,6 @@ export const convertProofGraphToCode = createAsyncThunk(
       }
     }
     codeLines.push("p.proof()");
-
     return codeLines.join("\n");
   },
 );
