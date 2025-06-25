@@ -2,7 +2,6 @@ import {
   Background,
   BackgroundVariant,
   type EdgeTypes,
-  Node,
   type NodeTypes,
   ReactFlow,
 } from "@xyflow/react";
