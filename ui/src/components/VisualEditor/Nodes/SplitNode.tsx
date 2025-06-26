@@ -8,13 +8,13 @@ export default function SplitNode({ id }: { id: string }) {
         type="target"
         position={Position.Top}
         id={`${id}-top`}
-        style={{ opacity: 0 }}
+        className="opacity-0"
       />
       <Handle
         type="source"
         position={Position.Bottom}
         id={`${id}-bottom`}
-        style={{ opacity: 0 }}
+        className="opacity-0"
       />
     </div>
   );
