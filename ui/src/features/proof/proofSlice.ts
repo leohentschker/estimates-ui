@@ -14,6 +14,7 @@ import {
   GOAL_EDGE_TYPE,
   GOAL_NODE_TYPE,
   SPLIT_EDGE_TYPE,
+  SPLIT_NODE_TYPE,
   TACTIC_EDGE_TYPE,
   TACTIC_NODE_TYPE,
 } from "../../metadata/graph";
@@ -274,7 +275,7 @@ export const proofSlice = createSlice({
               y: 0,
             },
             deletable: false,
-            type: TACTIC_NODE_TYPE,
+            type: SPLIT_NODE_TYPE,
             data: {
               label: n.label,
               sorryFree: n.sorry_free,

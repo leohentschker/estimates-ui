@@ -1,9 +1,15 @@
-import { BaseEdge, MarkerType, getBezierPath } from "@xyflow/react";
+import {
+  BaseEdge,
+  MarkerType,
+  getBezierPath,
+  getSimpleBezierPath,
+} from "@xyflow/react";
 
 import { EdgeLabelRenderer } from "@xyflow/react";
 import { PencilIcon } from "lucide-react";
-import { removeEdge } from "../../features/proof/proofSlice";
-import { useAppDispatch } from "../../store";
+import { removeEdge, selectNodes } from "../../features/proof/proofSlice";
+import { TACTIC_NODE_TYPE } from "../../metadata/graph";
+import { useAppDispatch, useAppSelector } from "../../store";
 import TacticPopover from "../TacticPopover";
 import LatexString from "./LatexString";
 
@@ -15,6 +21,7 @@ export default function TacticEdge({
   targetY,
   data,
   source,
+  target,
 }: {
   id: string;
   sourceX: number;
@@ -23,16 +30,27 @@ export default function TacticEdge({
   targetY: number;
   data: { tactic: string };
   source: string;
+  target: string;
 }) {
   const appDispatch = useAppDispatch();
   const handleRemoveEdge = (edgeId: string) => appDispatch(removeEdge(edgeId));
+  const nodes = useAppSelector(selectNodes);
+  const targetNode = nodes.find((node) => node.id === target);
 
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-  });
+  const [edgePath, labelX, labelY] =
+    targetNode?.type === TACTIC_NODE_TYPE
+      ? getBezierPath({
+          sourceX,
+          sourceY,
+          targetX,
+          targetY,
+        })
+      : getSimpleBezierPath({
+          sourceX,
+          sourceY,
+          targetX,
+          targetY,
+        });
 
   return (
     <>
