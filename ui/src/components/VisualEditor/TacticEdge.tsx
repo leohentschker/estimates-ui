@@ -3,8 +3,6 @@ import {
   MarkerType,
   getBezierPath,
   getSimpleBezierPath,
-  getSmoothStepPath,
-  getStraightPath,
 } from "@xyflow/react";
 
 import { EdgeLabelRenderer } from "@xyflow/react";
