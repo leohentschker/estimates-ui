@@ -22,6 +22,7 @@ import {
 import {
   GOAL_EDGE_TYPE,
   GOAL_NODE_TYPE,
+  SPLIT_NODE_TYPE,
   TACTIC_EDGE_TYPE,
   TACTIC_NODE_TYPE,
 } from "../../metadata/graph";
@@ -30,6 +31,7 @@ import { useAppSelector } from "../../store";
 import { Button } from "../Button";
 import LoadingState from "../LoadingState";
 import GoalNode from "./Nodes/GoalNode";
+import SplitNode from "./Nodes/SplitNode";
 import TacticNode from "./Nodes/TacticNode";
 import TacticEdge from "./TacticEdge";
 
@@ -44,6 +46,7 @@ export default function VisualEditor(): React.ReactElement {
   const nodeTypes: NodeTypes = {
     [TACTIC_NODE_TYPE]: TacticNode,
     [GOAL_NODE_TYPE]: GoalNode,
+    [SPLIT_NODE_TYPE]: SplitNode,
   };
 
   const edgeTypes: EdgeTypes = {

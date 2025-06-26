@@ -13,7 +13,7 @@ export default function GoalNode({
     <>
       <div
         className={classNames(
-          "goalnode border rounded-md p-2 max-w-64 items-center justify-center text-center border-green-800",
+          "goalnode border rounded-md p-2 max-w-80 items-center justify-center text-center border-green-800",
         )}
       >
         <RenderedNodeText text={goal} />

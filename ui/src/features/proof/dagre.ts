@@ -1,13 +1,13 @@
 import type { Edge, Node } from "@xyflow/react";
 import Dagre from "dagre";
 
-const DEFAULT_VERTICAL_BETWEEN_NODES = 300;
+const DEFAULT_VERTICAL_BETWEEN_NODES = 250;
 const DEFAULT_HORIZONTAL_BETWEEN_NODES = 500;
 
 export const layoutGraphElements = (
   nodes: Node[],
   edges: Edge[],
-  options: { direction: "TB" | "LR" } = { direction: "TB" },
+  options: { direction: "TB" | "LR" | "BT" } = { direction: "TB" },
 ) => {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   g.setGraph({
