@@ -15,6 +15,8 @@ This is supported by three pieces of work:
 3. With the work above we can shim `z3` and Pyodide loads `sympy` by default
 In order to build a Pyodide-compatible version of `estimates`, we replace the default `pyproject.toml` in `estimates` with `estimates-pyproject.toml`. See [`.github/workflows/pages.yml`](.github/workflows/pages.yml) for the full build pipeline.
 
+This is then loaded in `z3-pyodide-shim/ui/src/features/pyodide/loader.ts` from the jsdeliver CDN.
+
 #### How this can break
 If there are upstream dependency changes in `estimates`, this process of building new wheels may fail and in turn kill future builds in this repository.
 
@@ -23,6 +25,8 @@ It's likely worth figuring out a better way to manage this build process, as rig
 
 ### Vite app
 With pure python `z3` and `estimates` wheels, we can now load them in any Pyodide-compatible environment. In the folder `ui` we have a vite app that loads the website at [`https://math.llm.dev`](https://math.llm.dev).
+
+You will need to download the most recent version of the estimates wheel in order to run the UI locally.
 
 You can run this with the following:
 ```
