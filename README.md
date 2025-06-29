@@ -26,8 +26,6 @@ It's likely worth figuring out a better way to manage this build process, as rig
 ### Vite app
 With pure python `z3` and `estimates` wheels, we can now load them in any Pyodide-compatible environment. In the folder `ui` we have a vite app that loads the website at [`https://math.llm.dev`](https://math.llm.dev).
 
-You will need to download the most recent version of the estimates wheel in order to run the UI locally.
-
 You can run this with the following:
 ```
 cd ui
