@@ -38,3 +38,15 @@ This can break in all the classic ways that web apps can break! Any and all cont
 
 ## Contributing
 Please review the issues tagged with `good-first-issue` or submit an issue of your own! This is a very early-stage project, so contributors are actively encouraged.
+
+### Loading available tactics and lemmas
+The available tactics and lemmas are dynamically loaded from the main `estimates` repository using the `build_tactics_lemmas.py` script. This script:
+
+1. Imports all tactic and lemma classes from the `estimates` library
+2. Extracts metadata including descriptions, arguments, and class names
+3. Exports this data as JSON files (`tactics.json` and `lemmas.json`) in the `ui/src/metadata/` directory
+4. The UI then imports these JSON files to populate the available tactics and lemmas in the interface
+
+This ensures that any new tactics or lemmas added to the main `estimates` repository will automatically be available in the browser interface after rebuilding the metadata.
+
+TODO: once Lemma metadata is loaded into main in the estimates repo, we can add this to the CI pipeline. Right now this is run and updated locally.
