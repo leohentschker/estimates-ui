@@ -13,7 +13,7 @@ for tactic_class in Tactic.__subclasses__():
         continue
     tactic_data.append({
         "id": tactic_class.__name__,
-        "label": tactic_class.__name__,
+        "label": tactic_class.label,
         "description": tactic_class.description,
         "className": tactic_class.__name__,
         "arguments": tactic_class.arguments,
@@ -23,7 +23,7 @@ lemma_data = []
 for lemma_class in Lemma.__subclasses__():
     lemma_data.append({
         "id": lemma_class.__name__,
-        "label": lemma_class.__name__,
+        "label": lemma_class.label,
         "description": lemma_class.description,
         "className": lemma_class.__name__,
         "arguments": lemma_class.arguments,
