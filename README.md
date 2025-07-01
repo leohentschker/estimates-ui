@@ -6,7 +6,7 @@ Browser-based IDE for writing proofs with the [`estimates`](https://github.com/t
 ## How it works
 This is supported by three pieces of work:
 1. [z3 wheel](https://github.com/Z3Prover/z3/issues/7418) pyodide-compatible z3 wheel released by the Microsoft team
-2. [estimates-pyproject.toml](estimates-pyproject.toml) pure-python `estimates` wheel
+2. [estimates-pyodide-pyproject.toml](ui/estimates-pyodide-pyproject.toml) pure-python `estimates` wheel
 3. [ui](ui) `vite` app that loads the uses Pyodide to serve `estimates` wheel, after injecting the `z3` dependency
 
 ### Building estimates as a wheel
