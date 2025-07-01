@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "DEV-shift-all-build-scripts-into-subfolder" ]
 
 permissions:
   contents: write
@@ -14,7 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -30,13 +29,13 @@ jobs:
       - name: Build the wheel for the estimates repo
         run: |
           rm estimates/pyproject.toml
-          cp estimates-pyproject.toml estimates/pyproject.toml
+          cp ui/estimates-pyodide-pyproject.toml estimates/pyproject.toml
           cd estimates
           uv build --wheel --python 3.12
 
       - name: Build tactics and lemmas
         run: |
-          uv run --python 3.13 --with git+https://github.com/teorth/estimates build_tactics_lemmas.py
+          uv run --python 3.13 --with git+https://github.com/teorth/estimates ui/build_tactics_lemmas.py
 
       - name: Build Vite app
         run: |
@@ -48,8 +47,7 @@ jobs:
         run: |
           cp ui/public/coi-serviceworker.js ui/dist/assets/
           cp estimates/dist/estimates-0.1.0-py3-none-any.whl ui/dist/estimates-0.3.0-py3-none-any.whl
-          
-      # Deploy to GitHub Pages
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
