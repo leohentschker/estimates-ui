@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main", "DEV-add-auto-build-tactics-json" ]
+    branches: [ "main" ]
 
 permissions:
   contents: write
