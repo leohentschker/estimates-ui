@@ -1,7 +1,3 @@
-# TODO: remove this once the PR is merged into main in estimates
-import sys
-sys.path.append("../estimates/src")
-
 from estimates.tactic import Tactic
 from estimates.lemma import *
 from estimates.main import *
@@ -30,7 +26,7 @@ for lemma_class in Lemma.__subclasses__():
     })
 
 with open("ui/src/metadata/tactics.json", "w") as f:
-    json.dump(tactic_data, f, indent=4)
+    json.dump(tactic_data, f, indent=2)
 
 with open("ui/src/metadata/lemmas.json", "w") as f:
-    json.dump(lemma_data, f, indent=4)
+    json.dump(lemma_data, f, indent=2)

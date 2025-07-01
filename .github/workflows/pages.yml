@@ -2,7 +2,7 @@ name: Github Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "DEV-add-auto-build-tactics-json" ]
 
 permissions:
   contents: write
@@ -33,6 +33,10 @@ jobs:
           cp estimates-pyproject.toml estimates/pyproject.toml
           cd estimates
           uv build --wheel --python 3.12
+
+      - name: Build tactics and lemmas
+        run: |
+          uv run --python 3.13 --with git+https://github.com/teorth/estimates build_tactics_lemmas.py
 
       - name: Build Vite app
         run: |
